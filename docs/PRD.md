@@ -1,203 +1,228 @@
 # Product Requirements Document
 
 Project: Онлайн-калькулятор графиков функций 2D/3D
-Status: Draft for implementation alignment
+Status: Scope baseline for implementation
 Canonical intent: "Создать онлайн-калькулятор с построением графиков функций от двух и трех переменных."
 
-## Product framing
+## Purpose
 
-This project is a browser-based calculator for visualizing multivariable functions.
-The explicit project intent is the source of truth. This PRD does not infer extra
-scope from the repository slug.
+This PRD is the product contract for the first shippable version of the
+calculator. Its job is to remove the scope ambiguity from intake so `HEL-84`
+can choose a stack without reopening product meaning.
 
-This is not a generic "math app" brief. It is a delivery and validation contract
-for the first shippable version of an online graphing tool that can accept typed
-functions and render them in a form that users can inspect interactively.
+`.bootstrap/project.json` is the source of truth for project intent. This
+document translates that intent into a concrete MVP boundary.
+
+## Product promise
+
+The product is a browser-based graphing calculator that lets a user type a
+supported mathematical expression and inspect the result interactively in either
+2D or 3D.
+
+For this MVP, the "2D/3D" promise refers to the rendered coordinate space, not
+to general N-variable math support.
+
+- `2D` means plotting a Cartesian curve of the form `y = f(x)`.
+- `3D` means plotting a Cartesian surface of the form `z = f(x, y)`.
+- True three-input scalar fields such as `f(x, y, z)` are out of scope for MVP.
+
+This interpretation aligns the project title with a web-deliverable graphing
+experience and avoids turning the first release into an isosurface, slicing, or
+volume-rendering product.
 
 ## Problem statement
 
-Potential users who work with multivariable functions need a fast way to inspect
-equations visually without installing desktop math software or writing plotting
-code manually.
+People who need to sanity-check a formula visually often have to install heavy
+desktop software, write plotting code, or switch between tools that are too
+complex for quick inspection.
 
-The project is testing whether a browser-based calculator can cover that need with
-enough clarity and responsiveness to be useful for exploratory work.
+The product should cover the lightweight use case: enter a supported expression,
+render it in the browser, inspect it immediately, and recover cleanly from bad
+input.
 
-## Product hypothesis
+## Target user
 
-If users can enter supported functions of two and three variables directly in the
-browser, receive an interactive graph quickly, and understand invalid input when
-it fails, then the product will be good enough to justify continued investment as
-the primary graphing surface for this project.
+Primary user:
+- A STEM learner, educator, or engineer who needs a quick browser-based check
+  of a function without local setup.
 
-## Target users and stakeholders
+Primary job-to-be-done:
+- "When I have a formula I want to inspect, let me enter it in the browser and
+  get a manipulable graph quickly enough to confirm whether the function behaves
+  as I expect."
 
-### Primary user
+Secondary stakeholder:
+- The project maintainer who needs a narrow, testable MVP scope and explicit
+  acceptance evidence for future implementation tickets.
 
-- A user who needs to inspect multivariable functions quickly in a browser.
-- Typical motivations: learning, checking a formula, explaining a surface or
-  slice visually, or validating whether an expression behaves as expected.
+## MVP scope
 
-### Operator
+The first release must provide:
 
-- The project maintainer or small internal team responsible for defining the
-  supported syntax, shipping the web app, and validating that the graph output is
-  correct enough for the supported scenarios.
-
-### Stakeholder
-
-- The project sponsor evaluating whether the calculator solves the intended
-  problem well enough to continue implementation and release work.
-
-## MVP scope contract
-
-The first shippable version must provide:
-
-- A public browser-based UI with no required local installation for end users.
-- An input flow for entering supported math expressions.
-- A documented visualization path for functions of two variables.
-- A documented visualization path for functions of three variables.
-- Interactive inspection controls appropriate to the selected graph mode, such as
-  zoom, pan, rotate, slice selection, or equivalent view manipulation.
-- Clear validation and error handling for unsupported or invalid expressions.
-- A documented list of supported operators, constants, and built-in functions.
-
-## Critical scope clarification
-
-The phrase "functions of three variables" is ambiguous for visualization.
-A function of the form `w = f(x, y, z)` is not directly viewable as a simple 2D or
-3D graph without an additional representation rule.
-
-Implementation must not guess here.
-
-Before feature delivery is considered complete, the project must explicitly choose
-and document one supported representation for three-variable functions, such as:
-
-- fixed-parameter slices
-- isosurfaces / level sets
-- projection or reduction rules with user-controlled parameters
-
-No implementation is successful if three-variable support is implied but not
-defined.
-
-## User outcomes
-
-The product should let a user:
-
-- enter a valid supported function and see a graph without leaving the page
-- understand which graph mode is being used and why
-- adjust the view enough to inspect the result
-- recover from invalid input through a readable error message
-
-## Required source inputs
-
-The implementation depends on these source-of-truth inputs:
-
-| Input | Status | Purpose |
-| --- | --- | --- |
-| `.bootstrap/project.json` intent | available | Canonical project goal and repo metadata |
-| Linear issue `HEL-83` | available | Scope for this PRD and success contract |
-| Supported math syntax contract | missing, must be authored | Defines what users may type |
-| Two-variable rendering contract | missing, must be authored | Defines accepted form and output for 2-variable functions |
-| Three-variable rendering contract | missing, must be authored | Defines the representation used instead of an implied 4D plot |
-| Example expressions and expected outputs | missing, must be prepared | Drives demos, fixtures, and acceptance checks |
-| Deployment target and runtime constraints | partially available | Repo metadata says static web, but hosting details still need implementation |
-
-## Required prepared artifacts
-
-The project must prepare these artifacts before implementation can be judged
-complete:
-
-| Artifact | Producer | Purpose |
-| --- | --- | --- |
-| `docs/PRD.md` | this issue | Product scope and validation contract |
-| `docs/INPUTS.md` | input-contract maintenance | External input readiness and gaps |
-| Expression fixture set | implementation/test work | Valid and invalid examples for regression and demos |
-| Supported syntax reference | implementation/docs work | User-facing input contract |
-| Acceptance checklist with evidence links | validation/review work | Proof that the shipped app meets the PRD |
-| Deployment artifact and live URL | release work | Publicly accessible product output |
-
-## Success metrics
-
-The product is successful when all of the following are true:
-
-1. A user can enter at least one documented two-variable example and receive the
-   expected graph in the browser.
-2. A user can enter at least one documented three-variable example and receive the
-   explicitly documented representation for that mode.
-3. Invalid or unsupported input produces a readable error instead of a silent
-   failure or broken render.
-4. The supported syntax and graph modes are documented well enough that a reviewer
-   can reproduce the acceptance examples without source-code guesswork.
-5. The app is deployed to a reachable URL and can be exercised on desktop and
-   mobile browsers for the supported flows.
-
-## Failure criteria
-
-The project fails the contract if any of the following remain true:
-
-- three-variable support is claimed without a concrete representation rule
-- graph output only works for undocumented internal examples
-- invalid input can leave the UI in an unreadable, blank, or misleading state
-- deployment exists but the core example flows cannot be reproduced by a reviewer
-- the implementation scope expands into a general CAS or advanced math suite
-  before the graphing core works reliably
-
-## Acceptance evidence
-
-Completion evidence must include:
-
-- a deployed build URL
-- a short acceptance checklist covering the documented example expressions
-- proof that both the two-variable and three-variable paths were exercised
-- evidence of invalid-input handling
-- local validation results for the implementation branch
-- remote PR/CI evidence for the published branch
-
-If the delivered feature is UI-facing, acceptance evidence must also include:
-
-- at least one reviewed desktop screenshot
-- at least one reviewed mobile screenshot
-- confirmation that those screenshots match the documented graphing flow
+- a public browser UI with no account or backend dependency for the core graph
+  flow
+- one expression input flow that accepts documented syntax and clearly indicates
+  whether the app is in `2D` or `3D` mode
+- one active graph at a time
+- 2D plotting for `y = f(x)` with visible axes plus zoom and pan controls
+- 3D surface plotting for `z = f(x, y)` with visible orientation cues plus
+  rotate and zoom controls
+- user-editable visible ranges for the active graph
+- clear inline validation for parse errors and unsupported syntax
+- built-in example presets for at least one 2D flow and one 3D flow
+- responsive layout that remains usable on desktop and mobile
 
 ## Non-goals
 
-The first version does not need to provide:
+The MVP must not include:
 
-- symbolic algebra, derivation, integration, or equation solving
-- user accounts, saved workspaces, or collaboration features
-- arbitrary 4D visualization beyond the explicitly chosen three-variable
-  representation
-- a native desktop or mobile application
-- a full educational content library
+- true `f(x, y, z)` visualization
+- implicit surfaces, parametric curves, parametric surfaces, or volume rendering
+- multiple simultaneous graphs, graph overlays, or comparison workspaces
+- symbolic algebra, solving, differentiation, integration, or CAS behavior
+- user accounts, saved history, collaboration, or backend persistence
+- native mobile or desktop apps
 
-## Unresolved risks
+## Launch risks
 
-- Three-variable rendering remains the highest product-definition risk until the
-  representation contract is chosen.
-- Performance constraints are not yet benchmarked for heavy expressions or dense
-  meshes.
-- The supported syntax is not yet defined, which can create rework across parser,
-  validation, and documentation.
-- No canonical example set exists yet, so future tasks must create fixtures before
-  acceptance can be automated.
+- Rendering stack risk: one frontend stack has to support both responsive 2D
+  interaction and usable 3D surface rendering without a backend.
+- Syntax-contract risk: if supported math grammar is vague, parser, validation,
+  examples, and docs will drift.
+- Mobile-UX risk: 3D manipulation can become unusable quickly on small screens
+  if controls are too dense or gesture handling is poor.
+- Performance risk: dense surfaces or high sampling defaults can make the app
+  feel broken on average laptop/mobile hardware.
 
-## Final deliverables
+## Scope decisions locked by this PRD
 
-The project should ultimately ship:
+### 1. Exact meaning of the 2D/3D promise
 
-- a deployed online calculator for supported multivariable graphing scenarios
-- a documented input and graph-mode contract
-- prepared example expressions used for validation and demonstration
-- implementation validation evidence tied back to this PRD
+- `2D` flow: the user enters an expression for `y` as a function of `x`.
+- `3D` flow: the user enters an expression for `z` as a function of `x` and
+  `y`.
+- The app may infer the mode from variable usage, use an explicit toggle, or use
+  presets, but the selected mode must always be obvious in the UI.
 
-## Exit condition for this PRD
+### 2. `f(x, y, z)` scope decision
 
-This PRD is complete for planning purposes when a reviewer can answer, without
-guesswork:
+True three-input function visualization is not part of MVP.
 
-- who the product is for
-- what problem is being tested
-- what counts as two-variable and three-variable support
-- which inputs and artifacts are required before implementation is accepted
-- what evidence proves success or failure
+Reason:
+- it introduces an entirely different representation problem
+- it would force early scope decisions around slicing, isosurfaces, or 4D-to-3D
+  reduction that are unnecessary for proving the core product
+- it would distort stack selection for `HEL-84`
+
+If future work wants `f(x, y, z)` support, it needs a separate PRD amendment and
+explicit representation contract.
+
+### 3. Primary user and JTBD
+
+- Primary user: browser-first learner/educator/engineer who needs fast visual
+  confirmation of a formula.
+- JTBD: "Enter a formula and inspect the graph immediately without setup."
+
+### 4. MVP boundary
+
+The MVP proves one browser product can handle:
+- a typed 2D curve flow
+- a typed 3D surface flow
+- invalid-input handling
+- responsive desktop/mobile usage
+
+It does not prove:
+- broad math-system coverage
+- advanced scientific visualization
+- collaboration, storage, or pedagogy features
+
+## Canonical acceptance flows
+
+These flows are mandatory because they are the baseline for both implementation
+and review.
+
+### 2D flow
+
+- Expression: `y = sin(x)`
+- Expected result: a 2D sinusoidal curve rendered against visible axes
+- Required interaction proof: the reviewer can zoom and pan the graph without
+  losing the curve or breaking the UI
+
+### 3D flow
+
+- Expression: `z = sin(x) * cos(y)`
+- Expected result: a 3D surface with visible peaks and valleys rendered in a
+  manipulable 3D scene
+- Required interaction proof: the reviewer can rotate and zoom the surface
+  without the graph disappearing or the controls overlapping the viewport
+
+## Measurable acceptance criteria
+
+The ticket is only considered satisfied when all of the following are true:
+
+1. The product contract states that MVP `2D` means `y = f(x)` and MVP `3D`
+   means `z = f(x, y)`.
+2. The product contract explicitly states that true `f(x, y, z)` visualization
+   is out of scope for MVP.
+3. The PRD names one primary user and one primary job-to-be-done.
+4. The PRD lists MVP features, non-goals, and launch risks in implementation-useful
+   terms.
+5. The PRD defines at least one canonical 2D example and one canonical 3D
+   example that future implementation and review must exercise.
+6. Acceptance evidence requires desktop and mobile proof for the graphing UI.
+7. The acceptance evidence for the 2D flow is specific enough that a reviewer
+   can tell whether the graph rendered correctly.
+8. The acceptance evidence for the 3D flow is specific enough that a reviewer
+   can tell whether the surface rendered correctly.
+9. The contract is narrow enough that `HEL-84` can choose libraries for a
+   static frontend app without needing to solve true `f(x, y, z)` visualization.
+
+## Required acceptance evidence
+
+Any implementation claiming compliance with this PRD must produce all of the
+following evidence:
+
+- a deployed or locally reviewable app URL/path
+- local validation evidence for the implementation branch
+- published branch / PR evidence for the implementation branch
+- one invalid-input example showing readable inline error handling
+- one reviewed desktop screenshot for the 2D flow
+- one reviewed mobile screenshot for the 2D flow
+- one reviewed desktop screenshot for the 3D flow
+- one reviewed mobile screenshot for the 3D flow
+
+## Explicit evidence contract for the canonical flows
+
+### Evidence for the 2D flow
+
+The acceptance packet must include:
+
+- the exact expression used: `y = sin(x)`
+- a screenshot showing the input value, the selected `2D` mode, visible axes,
+  and the rendered curve on desktop
+- a screenshot showing the same flow on mobile without control overlap or hidden
+  primary actions
+- a short note confirming zoom and pan were exercised successfully
+
+### Evidence for the 3D flow
+
+The acceptance packet must include:
+
+- the exact expression used: `z = sin(x) * cos(y)`
+- a screenshot showing the input value, the selected `3D` mode, and the
+  rendered surface on desktop
+- a screenshot showing the same flow on mobile with usable 3D viewport and
+  controls
+- a short note confirming rotate and zoom were exercised successfully
+
+## Exit condition
+
+`HEL-83` is complete when a follow-on engineering ticket can answer all of these
+questions without reopening scope:
+
+- What does `2D` mean?
+- What does `3D` mean?
+- Is true `f(x, y, z)` visualization required now?
+- Who is the primary user?
+- What exact flows must the first release prove?
+- What screenshots and validation evidence are required on desktop and mobile?

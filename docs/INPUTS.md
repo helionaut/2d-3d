@@ -28,9 +28,9 @@ Rules:
 | PRD / success contract | available after HEL-83 | `docs/PRD.md` | Defines problem, users, scope, metrics, and non-goals |
 | Linear issue scope | available | `HEL-83` and related project issues in Linear | Captures current task boundaries |
 | Supported math syntax contract | missing | to be authored in repo docs | Required before parser and validation work can be accepted |
-| Two-variable graph contract | missing | to be authored in repo docs/tests | Must define accepted input form and expected visualization |
-| Three-variable graph contract | missing | to be authored in repo docs/tests | Must define the representation strategy instead of implying a direct 4D plot |
-| Example expressions and expected outcomes | missing | to be prepared in fixtures/docs | Needed for demos, regression checks, and acceptance evidence |
+| Two-variable graph contract | available at MVP level | `docs/PRD.md` | Locked to `y = f(x)` for the first release |
+| Three-variable graph contract | available at MVP level | `docs/PRD.md` | Locked to `z = f(x, y)`; true `f(x, y, z)` is out of MVP scope |
+| Example expressions and expected outcomes | partially available | `docs/PRD.md`; fixtures/docs still to be prepared | PRD now defines canonical 2D and 3D acceptance examples, but reusable fixtures do not exist yet |
 | Hosting/runtime configuration | partially available | `.bootstrap/project.json` (`static-web`) | Deployment profile exists, but runtime details still need implementation artifacts |
 
 ## Prepared Artifacts
@@ -62,9 +62,10 @@ No external private assets are present yet.
 
 Current acquisition work that must be converted into committed repo artifacts:
 
-- Author the math syntax and graph-mode contracts before implementation relies on
-  implicit behavior.
-- Prepare a canonical set of valid and invalid example expressions.
+- Author the supported math syntax contract before implementation relies on
+  implicit parsing behavior.
+- Materialize the PRD's canonical 2D and 3D examples as reusable presets or
+  fixtures.
 - Record deployment/runtime setup once the web stack is selected and bootstrapped.
 
 ## Real Gaps
@@ -72,5 +73,5 @@ Current acquisition work that must be converted into committed repo artifacts:
 | Gap | Why it is real | Likely resolver | Blocks |
 | --- | --- | --- | --- |
 | Supported syntax definition | Cannot be derived from repo metadata alone | product/implementation owner | parser, validation, docs, tests |
-| Three-variable representation choice | The intent says "three variables" but not how that is visualized | product/implementation owner | rendering design, acceptance criteria |
-| Canonical example fixture set | No source examples exist in the repo yet | implementation/test work | regression coverage and demo evidence |
+| Canonical example fixture set | PRD names canonical examples, but reusable presets/fixtures are not yet committed | implementation/test work | regression coverage and demo evidence |
+| Invalid-input example fixture | Acceptance requires readable error proof, but no canonical invalid case is documented yet | implementation/test work | validation UX review and acceptance evidence |
