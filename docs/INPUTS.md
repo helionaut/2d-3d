@@ -38,7 +38,7 @@ Rules:
 | Prepared artifact | Generator / owner | Output path | Validation / downstream use |
 | --- | --- | --- | --- |
 | Product requirements document | HEL-83 | `docs/PRD.md` | Planning baseline for implementation and review |
-| Input readiness contract | HEL-85 or follow-up updates | `docs/INPUTS.md` | Source of truth for missing inputs and prepared assets |
+| Input readiness contract | HEL-83 and follow-up updates | `docs/INPUTS.md` | Source of truth for missing inputs and prepared assets |
 | Syntax reference | implementation/docs work | `docs/` path TBD | Used by parser, UI copy, and reviewer acceptance |
 | Expression fixture set | implementation/test work | path TBD | Used by tests, demos, and validation checklist |
 | Acceptance evidence checklist | implementation/validation work | path TBD | Used to prove PRD success criteria |
