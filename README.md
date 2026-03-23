@@ -9,6 +9,7 @@ the planning docs.
 - Plotly for both required rendering proofs: `y = f(x)` and `z = f(x, y)`
 - Vitest + Testing Library for unit coverage
 - Playwright for browser validation on desktop and mobile
+- Checked-in grammar examples and presets define the MVP input contract
 - GitHub Actions mirrors the local `npm run check` command
 
 ## Quick start
@@ -27,19 +28,22 @@ used by Playwright, and prepares deterministic report/log directories.
 npm run dev
 npm run build
 npm run lint
+npm run check:inputs
 npm run test:unit
 npm run test:e2e
 npm run check
 ```
 
 `npm run check` is the aggregate validation command future tickets should use
-before handoff.
+before handoff. It validates repo diff hygiene, the checked-in input contract,
+lint, unit tests, production build output, and Playwright browser coverage.
 
 ## Test and artifact conventions
 
 - Unit and component behavior: `tests/unit/`
 - Browser flows and responsive checks: `tests/browser/`
 - Reusable graph fixtures and acceptance examples: `fixtures/`
+- Built-in canonical presets: `presets/`
 - Runtime logs when needed: `logs/out/`
 - Machine-readable and HTML reports: `reports/out/`
 

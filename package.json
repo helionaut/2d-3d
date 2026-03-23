@@ -8,9 +8,11 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "check:repo": "git diff --check",
+    "check:inputs": "python3 scripts/check_inputs_contract.py",
     "test:unit": "vitest run --reporter=default --reporter=junit --outputFile=reports/out/vitest/results.xml",
     "test:e2e": "playwright test",
-    "check": "npm run lint && npm run test:unit && npm run build && npm run test:e2e",
+    "check": "npm run check:repo && npm run check:inputs && npm run lint && npm run test:unit && npm run build && npm run test:e2e",
     "preview": "vite preview --host 0.0.0.0 --port 4173"
   },
   "dependencies": {
