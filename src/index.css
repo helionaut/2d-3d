@@ -1,0 +1,77 @@
+:root {
+  --bg: #f5f1e7;
+  --bg-strong: #ede4d3;
+  --panel: rgba(255, 252, 246, 0.88);
+  --plot-surface: linear-gradient(180deg, rgba(245, 241, 231, 0.8), rgba(255, 255, 255, 0.95));
+  --border: rgba(10, 74, 111, 0.15);
+  --border-strong: rgba(10, 74, 111, 0.26);
+  --text-strong: #143047;
+  --text-soft: #526475;
+  --text-muted: #7e8f9b;
+  --accent: #0a4a6f;
+  --shadow-soft: 0 20px 50px rgba(20, 48, 71, 0.1);
+  --sans: 'Avenir Next', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --heading: 'Avenir Next Condensed', 'Arial Narrow', 'Trebuchet MS', sans-serif;
+  --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  color: var(--text-strong);
+  background:
+    radial-gradient(circle at top, rgba(236, 183, 55, 0.22), transparent 28%),
+    linear-gradient(180deg, #f6f1e7 0%, #ece4d5 100%);
+  font: 17px/1.55 var(--sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+p,
+dd,
+dt {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--heading);
+  color: var(--text-strong);
+  line-height: 1.05;
+}
+
+h1 {
+  font-size: clamp(3rem, 6vw, 5.5rem);
+  max-width: 12ch;
+}
+
+h2 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+h3 {
+  font-size: 1.65rem;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.94rem;
+}

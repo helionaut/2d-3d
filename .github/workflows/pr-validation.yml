@@ -1,21 +1,39 @@
-name: PR Validation
+name: Harness Validation
 
 on:
+  push:
+    branches:
+      - main
+      - 'eugeniy/**'
   pull_request:
   workflow_dispatch:
 
 jobs:
-  docs-contract:
+  frontend-harness:
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Verify required planning documents exist
-        run: |
-          test -f docs/PRD.md
-          test -f docs/INPUTS.md
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
 
-      - name: Check diff formatting
-        run: git diff --check
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run aggregate harness checks
+        run: npm run check
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-reports
+          path: reports/out

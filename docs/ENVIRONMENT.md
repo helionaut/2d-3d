@@ -30,7 +30,7 @@ single `HEL-*` workspace.
 ## Current contract
 
 - Strategy: `host`
-- Status: `draft until the first environment issue resolves`
+- Status: `baseline committed in scripts/bootstrap_host_deps.sh`
 - Shared cache root: `~/srv/research-cache/2d-3d`
 - Stable subdirectories:
   - downloads: `~/srv/research-cache/2d-3d/downloads`
@@ -52,3 +52,12 @@ single `HEL-*` workspace.
   before allowing repeated build retries.
 - Every follow-up issue must say which environment baseline or cache paths it
   expects to reuse.
+
+## HEL-84 host baseline
+
+- Repo-local bootstrap entrypoint: `scripts/bootstrap_host_deps.sh`
+- Expected host prerequisites: `node`, `npm`
+- Bootstrap responsibilities:
+  - install or refresh `node_modules`
+  - install the Playwright Chromium browser used by local/browser validation
+  - prepare `logs/out/`, `reports/out/vitest/`, and `reports/out/playwright/`
