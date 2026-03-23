@@ -1,0 +1,45 @@
+name: Intake Checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "eugeniy/**"
+
+jobs:
+  intake-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Validate canonical intake artifacts
+        run: |
+          git diff --check
+          python -m json.tool .bootstrap/project.json >/dev/null
+          test -f README.md
+          test -f docs/ENVIRONMENT.md
+          test -f docs/EXECUTION_PLAN.md
+          test -f docs/INPUTS.md
+
+      - name: Validate project bootstrap fields
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path(".bootstrap/project.json").read_text(encoding="utf-8"))
+          assert data["project"]["name"] == "Онлайн-калькулятор графиков функций 2D/3D"
+          assert data["project"]["task"] == "Создать онлайн-калькулятор с построением графиков функций от двух и трех переменных."
+          assert data["project"]["mode"] == "product"
+          assert data["deploy"]["profile"] == "static-web"
+          assert data["execution"]["strategy"] == "host"
+          assert any(issue["identifier"] == "HEL-82" for issue in data["linear"]["issues"])
+          PY
