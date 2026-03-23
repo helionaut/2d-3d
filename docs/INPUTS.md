@@ -1,7 +1,7 @@
 # Input Contract: Онлайн-калькулятор графиков функций 2D/3D
 
-Status: Draft contract for downstream implementation
-Last Updated: `HEL-85`
+Status: Harness baseline and input contract established
+Last Updated: `HEL-84`, `HEL-85`
 
 ## Purpose
 
@@ -24,7 +24,20 @@ validation, preset, and UI tickets proceed without reopening product scope.
 | Product scope and acceptance | available | `docs/PRD.md` | Locks MVP to `2D = y = f(x)` and `3D = z = f(x, y)` |
 | Formula grammar and validation rules | available | this document plus `fixtures/grammar/examples.json` | Normative for parsing and error handling |
 | Built-in presets | available | `presets/manifest.json` plus files under `presets/2d/` and `presets/3d/` | Deterministic checked-in examples |
+| Harness plot proof fixtures | available | `fixtures/graphFixtures.ts` | Shared by the HEL-84 spike UI, unit tests, and browser tests |
 | Preset/example validation | available | `scripts/check_inputs_contract.py` | Repo-local contract check |
+| Host bootstrap path | available | `scripts/bootstrap_host_deps.sh` | Reproducible local install/bootstrap path for future tickets |
+
+## Harness Baseline Artifacts
+
+| Artifact | Owner | Path | Downstream use |
+| --- | --- | --- | --- |
+| Host bootstrap script | HEL-84 | `scripts/bootstrap_host_deps.sh` | Installs dependencies, Playwright Chromium, and deterministic output directories |
+| Plot proof fixture set | HEL-84 | `fixtures/graphFixtures.ts` | Shared acceptance examples for the demo app and tests |
+| Grammar example fixture set | HEL-85 | `fixtures/grammar/examples.json` | Normative parser and validation examples |
+| Built-in preset manifest | HEL-85 | `presets/manifest.json` | Stable index for canonical checked-in presets |
+| Browser acceptance checklist | HEL-84 | `tests/browser/plots.spec.ts` | Desktop/mobile smoke path for the canonical 2D and 3D renderings |
+| Validation output directories | HEL-84 | `logs/out/`; `reports/out/` | Stable locations for logs, reports, screenshots, and future evidence |
 
 ## MVP Decisions Locked Here
 
@@ -229,6 +242,11 @@ Canonical invalid examples are checked in at `fixtures/grammar/examples.json`.
 - 2D presets: `presets/2d/<id>.json`
 - 3D presets: `presets/3d/<id>.json`
 - grammar examples: `fixtures/grammar/examples.json`
+- graph proof fixtures: `fixtures/graphFixtures.ts`
+- unit and component tests: `tests/unit/`
+- browser and responsive tests: `tests/browser/`
+- logs and traces: `logs/out/`
+- reports and screenshots: `reports/out/`
 
 The preset file basename must equal the preset `id`.
 
@@ -358,41 +376,3 @@ Reason:
 
 If a later ticket adds URL-state sharing, it must introduce a separate public
 serialization contract and versioned schema.
-
-## Dependency, Asset, and Secret Contract
-
-The MVP input layer currently depends only on repo-local, checked-in artifacts:
-
-- `.bootstrap/project.json`
-- `docs/PRD.md`
-- `docs/INPUTS.md`
-- `presets/manifest.json`
-- `presets/2d/*.json`
-- `presets/3d/*.json`
-- `fixtures/grammar/examples.json`
-
-Explicitly not required:
-
-- API keys
-- backend endpoints
-- private datasets
-- licensed font, texture, or model assets
-- user-uploaded files
-- external CDN fetches for formulas or presets
-
-Implementation constraint for downstream tickets:
-
-- parser/evaluator/rendering libraries may be chosen in `HEL-84` or later, but
-  they must support this contract without introducing network-bound or secret
-  input dependencies for the core graph flow
-
-## Prepared Artifacts Added By HEL-85
-
-| Artifact | Path | Purpose |
-| --- | --- | --- |
-| Input contract | `docs/INPUTS.md` | Normative formula/preset/dependency contract |
-| Preset manifest | `presets/manifest.json` | Stable index of built-in examples |
-| Canonical 2D preset | `presets/2d/canonical-sine.json` | PRD acceptance example for `y = sin(x)` |
-| Canonical 3D preset | `presets/3d/canonical-sine-cosine-surface.json` | PRD acceptance example for `z = sin(x) * cos(y)` |
-| Grammar examples | `fixtures/grammar/examples.json` | Canonical valid and invalid parser cases |
-| Contract validator | `scripts/check_inputs_contract.py` | Local/CI structural validation of the checked-in inputs |

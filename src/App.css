@@ -1,0 +1,220 @@
+.app-shell {
+  display: grid;
+  gap: 28px;
+  padding: 28px;
+}
+
+.hero-panel,
+.artifact-panel,
+.plot-card,
+.convention-card {
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+}
+
+.hero-panel {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-panel::after {
+  content: '';
+  position: absolute;
+  inset: auto -80px -120px auto;
+  width: 280px;
+  height: 280px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(236, 183, 55, 0.26), transparent 68%);
+}
+
+.hero-copy,
+.hero-note,
+.plot-copy,
+.artifact-card {
+  position: relative;
+  z-index: 1;
+}
+
+.lede,
+.section-heading p,
+.note-list,
+.convention-card p,
+.artifact-card p,
+.fixture-meta dd {
+  color: var(--text-soft);
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.chip-row span,
+.artifact-card code,
+.convention-card code,
+.fixture-meta code {
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text-strong);
+  display: inline-flex;
+  padding: 0.35rem 0.8rem;
+}
+
+.hero-note {
+  align-self: stretch;
+  padding: 22px;
+  border-radius: 22px;
+  background: rgba(10, 74, 111, 0.05);
+}
+
+.note-list,
+.path-list {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.convention-grid,
+.artifact-grid,
+.plot-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.convention-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.convention-card {
+  padding: 22px;
+}
+
+.plots-section,
+.artifact-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.section-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.plot-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.plot-card {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.plot-copy h3,
+.artifact-card h3,
+.hero-note h2 {
+  margin: 0 0 8px;
+}
+
+.fixture-meta {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0 0;
+}
+
+.fixture-meta div {
+  display: grid;
+  gap: 6px;
+}
+
+.fixture-meta dt {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.plot-shell {
+  min-height: 360px;
+  padding: 10px;
+  border-radius: 22px;
+  background: var(--plot-surface);
+  border: 1px solid rgba(10, 74, 111, 0.12);
+}
+
+.plot-shell > div,
+.plot-shell .js-plotly-plot,
+.plot-shell .plot-container,
+.plot-shell .svg-container {
+  width: 100%;
+  height: 100%;
+}
+
+.artifact-panel {
+  padding: 24px;
+}
+
+.artifact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.artifact-card {
+  padding: 22px;
+  border-radius: 22px;
+  background: rgba(255, 249, 232, 0.72);
+  border: 1px solid rgba(173, 122, 19, 0.16);
+}
+
+.artifact-card code {
+  margin-top: 12px;
+}
+
+@media (max-width: 960px) {
+  .app-shell {
+    padding: 18px;
+  }
+
+  .hero-panel,
+  .plot-grid,
+  .convention-grid,
+  .artifact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 14px;
+  }
+
+  .hero-panel,
+  .plot-card,
+  .artifact-panel,
+  .convention-card {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .plot-shell {
+    min-height: 300px;
+    padding: 6px;
+  }
+}

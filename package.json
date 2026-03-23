@@ -1,0 +1,45 @@
+{
+  "name": "2d-3d",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "bootstrap": "./scripts/bootstrap_host_deps.sh",
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "check:repo": "git diff --check",
+    "check:inputs": "python3 scripts/check_inputs_contract.py",
+    "test:unit": "vitest run --reporter=default --reporter=junit --outputFile=reports/out/vitest/results.xml",
+    "test:e2e": "playwright test",
+    "check": "npm run check:repo && npm run check:inputs && npm run lint && npm run test:unit && npm run build && npm run test:e2e",
+    "preview": "vite preview --host 0.0.0.0 --port 4173"
+  },
+  "dependencies": {
+    "plotly.js-dist-min": "^3.1.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-plotly.js": "^2.6.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.56.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^24.12.0",
+    "@types/plotly.js": "^3.0.7",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-plotly.js": "^2.6.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "jsdom": "^27.1.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.57.0",
+    "vite": "^8.0.1",
+    "vitest": "^4.0.8"
+  }
+}
