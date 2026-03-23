@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "id": "canonical-sine",
+  "title": "Sine Wave",
+  "description": "Canonical 2D acceptance preset from docs/PRD.md.",
+  "mode": "2d",
+  "expression": "sin(x)",
+  "parameters": [],
+  "viewport": {
+    "x": {
+      "min": -6.2831853072,
+      "max": 6.2831853072
+    },
+    "y": {
+      "min": -1.5,
+      "max": 1.5
+    }
+  },
+  "sampling": {
+    "samples": 512
+  },
+  "tags": [
+    "canonical",
+    "trigonometric"
+  ]
+}

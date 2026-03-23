@@ -17,5 +17,8 @@ jobs:
           test -f docs/PRD.md
           test -f docs/INPUTS.md
 
+      - name: Validate checked-in input contract artifacts
+        run: python3 scripts/check_inputs_contract.py
+
       - name: Check diff formatting
         run: git diff --check
