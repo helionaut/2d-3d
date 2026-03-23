@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "presets": [
+    {
+      "id": "canonical-sine",
+      "mode": "2d",
+      "path": "presets/2d/canonical-sine.json",
+      "canonical": true
+    },
+    {
+      "id": "canonical-sine-cosine-surface",
+      "mode": "3d",
+      "path": "presets/3d/canonical-sine-cosine-surface.json",
+      "canonical": true
+    }
+  ]
+}

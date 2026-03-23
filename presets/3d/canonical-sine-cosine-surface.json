@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "id": "canonical-sine-cosine-surface",
+  "title": "Sine-Cosine Surface",
+  "description": "Canonical 3D acceptance preset from docs/PRD.md.",
+  "mode": "3d",
+  "expression": "sin(x) * cos(y)",
+  "parameters": [],
+  "viewport": {
+    "x": {
+      "min": -3.1415926536,
+      "max": 3.1415926536
+    },
+    "y": {
+      "min": -3.1415926536,
+      "max": 3.1415926536
+    },
+    "z": {
+      "min": -1.5,
+      "max": 1.5
+    }
+  },
+  "sampling": {
+    "xSamples": 96,
+    "ySamples": 96
+  },
+  "tags": [
+    "canonical",
+    "trigonometric",
+    "surface"
+  ]
+}

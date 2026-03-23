@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "valid-2d-prefixed-canonical",
+      "kind": "valid",
+      "mode": "2d",
+      "rawInput": "y = sin(x)",
+      "normalizedExpression": "sin(x)",
+      "parameterValues": {}
+    },
+    {
+      "id": "valid-3d-canonical",
+      "kind": "valid",
+      "mode": "3d",
+      "rawInput": "sin(x) * cos(y)",
+      "normalizedExpression": "sin(x) * cos(y)",
+      "parameterValues": {}
+    },
+    {
+      "id": "valid-2d-with-parameters",
+      "kind": "valid",
+      "mode": "2d",
+      "rawInput": "a * sin(b * x)",
+      "normalizedExpression": "a * sin(b * x)",
+      "parameterValues": {
+        "a": 1,
+        "b": 0.5
+      }
+    },
+    {
+      "id": "invalid-2d-implicit-multiplication",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "2x",
+      "expectedError": "implicit-multiplication"
+    },
+    {
+      "id": "invalid-2d-disallowed-variable",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "sin(y)",
+      "expectedError": "disallowed-variable-for-mode"
+    },
+    {
+      "id": "invalid-3d-wrong-prefix",
+      "kind": "invalid",
+      "mode": "3d",
+      "rawInput": "y = sin(x) * cos(y)",
+      "expectedError": "unsupported-dependent-variable-prefix"
+    },
+    {
+      "id": "invalid-unknown-function",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "log(x)",
+      "expectedError": "unsupported-function"
+    },
+    {
+      "id": "invalid-mismatched-parentheses",
+      "kind": "invalid",
+      "mode": "3d",
+      "rawInput": "sin(x * cos(y)",
+      "expectedError": "mismatched-parentheses"
+    }
+  ]
+}
