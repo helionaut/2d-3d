@@ -1,0 +1,21 @@
+name: PR Validation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docs-contract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify required planning documents exist
+        run: |
+          test -f docs/PRD.md
+          test -f docs/INPUTS.md
+
+      - name: Check diff formatting
+        run: git diff --check
