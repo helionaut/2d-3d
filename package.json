@@ -7,13 +7,16 @@
     "bootstrap": "./scripts/bootstrap_host_deps.sh",
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
+    "build:pages": "PUBLIC_BASE_PATH=/${npm_package_name}/ npm run build",
     "lint": "eslint .",
     "check:repo": "git diff --check",
     "check:inputs": "python3 scripts/check_inputs_contract.py",
     "test:unit": "vitest run --reporter=default --reporter=junit --outputFile=reports/out/vitest/results.xml",
     "test:e2e": "playwright test",
     "check": "npm run check:repo && npm run check:inputs && npm run lint && npm run test:unit && npm run build && npm run test:e2e",
-    "preview": "vite preview --host 0.0.0.0 --port 4173"
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "preview:pages": "npm run build:pages && vite preview --host 0.0.0.0 --port 4173 --base /${npm_package_name}/",
+    "verify:pages": "node scripts/verify-pages-content.mjs"
   },
   "dependencies": {
     "plotly.js-dist-min": "^3.1.2",

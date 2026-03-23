@@ -1,0 +1,159 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run aggregate validation
+        run: npm run check
+
+      - name: Build the GitHub Pages artifact
+        run: npm run build:pages
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-preview-dist
+          path: dist
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-reports
+          path: reports/out
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rebuild the deployed artifact
+        run: npm run build:pages
+
+      - name: Verify deployed Pages content
+        env:
+          PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+        run: npm run verify:pages -- "$PAGE_URL"
+
+  notify-telegram:
+    needs:
+      - deploy
+      - verify
+    if: ${{ needs.verify.result == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read Telegram routing from project metadata
+        id: routing
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          data = json.loads(Path(".bootstrap/project.json").read_text(encoding="utf-8"))
+          telegram = data.get("telegram", {})
+          project = data.get("project", {})
+          output_path = Path(os.environ["GITHUB_OUTPUT"])
+          with output_path.open("a", encoding="utf-8") as output:
+              output.write(f"chat_id={telegram.get('chat_id', '')}\n")
+              output.write(f"topic_id={telegram.get('topic_id', '')}\n")
+              output.write(f"project_name={project.get('name', '2d-3d')}\n")
+          PY
+
+      - name: Send Telegram release update
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ steps.routing.outputs.chat_id }}
+          TOPIC_ID: ${{ steps.routing.outputs.topic_id }}
+          PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+          PROJECT_NAME: ${{ steps.routing.outputs.project_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "TELEGRAM_BOT_TOKEN secret is not configured; skipping notification."
+            exit 0
+          fi
+
+          message=$(cat <<EOF
+          Production deploy updated for ${PROJECT_NAME}
+          URL: ${PAGE_URL}
+          Commit: ${GITHUB_SHA}
+          Workflow: ${RUN_URL}
+          EOF
+          )
+
+          curl --fail --silent --show-error \
+            --retry 5 \
+            --retry-delay 5 \
+            -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "message_thread_id=${TOPIC_ID}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            --data-urlencode "text=${message}" >/dev/null

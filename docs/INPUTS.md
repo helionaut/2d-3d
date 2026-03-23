@@ -1,7 +1,7 @@
 # Input Contract: Онлайн-калькулятор графиков функций 2D/3D
 
-Status: Harness baseline and input contract established
-Last Updated: `HEL-84`, `HEL-85`
+Status: Harness baseline, input contract, and deploy automation inputs established
+Last Updated: `HEL-84`, `HEL-85`, `HEL-87`
 
 ## Purpose
 
@@ -27,6 +27,9 @@ validation, preset, and UI tickets proceed without reopening product scope.
 | Harness plot proof fixtures | available | `fixtures/graphFixtures.ts` | Shared by the HEL-84 spike UI, unit tests, and browser tests |
 | Preset/example validation | available | `scripts/check_inputs_contract.py` | Repo-local contract check |
 | Host bootstrap path | available | `scripts/bootstrap_host_deps.sh` | Reproducible local install/bootstrap path for future tickets |
+| Deploy preview artifact | available | `dist/` uploaded by `.github/workflows/pr-validation.yml` | Reviewable static build without local preview-only steps |
+| Production deploy verification | available | `scripts/verify-pages-content.mjs` plus GitHub Pages URL | Confirms the live Pages site matches the checked-in build output |
+| Telegram release routing | available | `.bootstrap/project.json` plus `TELEGRAM_BOT_TOKEN` GitHub Actions secret | Used only after successful production deploys |
 
 ## Harness Baseline Artifacts
 
@@ -50,6 +53,9 @@ validation, preset, and UI tickets proceed without reopening product scope.
   secrets are required for formula entry or built-in presets.
 - Formula/preset inputs must be fully usable offline once the static app bundle
   is loaded.
+- Deploy automation adds one non-product secret, `TELEGRAM_BOT_TOKEN`, for
+  release-loop reporting after production publishes. The app itself still has no
+  runtime secret dependency.
 
 ## Formula Contract
 
