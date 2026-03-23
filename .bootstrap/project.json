@@ -1,0 +1,82 @@
+{
+  "project": {
+    "name": "Онлайн-калькулятор графиков функций 2D/3D",
+    "task": "Создать онлайн-калькулятор с построением графиков функций от двух и трех переменных.",
+    "mode": "product"
+  },
+  "repo": {
+    "slug": "2d-3d",
+    "owner": "helionaut",
+    "url": "https://github.com/helionaut/2d-3d",
+    "dir": "/home/helionaut/src/projects/2d-3d",
+    "visibility": "private"
+  },
+  "linear": {
+    "project_id": "3a9b059d-4959-4d1c-9eee-77becf3bf17e",
+    "project_slug": "59012b3450bf",
+    "project_url": "https://linear.app/heliagents/project/onlajn-kalkulyator-grafikov-funkcij-2d3d-59012b3450bf",
+    "starter_issue_id": "1930466a-575b-4a6c-a4bd-e710e4544e9c",
+    "starter_issue_identifier": "HEL-82",
+    "starter_issue_url": "https://linear.app/heliagents/issue/HEL-82/project-intake-onlajn-kalkulyator-grafikov-funkcij-2d3d",
+    "issues": [
+      {
+        "key": "project-intake",
+        "id": "1930466a-575b-4a6c-a4bd-e710e4544e9c",
+        "identifier": "HEL-82",
+        "url": "https://linear.app/heliagents/issue/HEL-82/project-intake-onlajn-kalkulyator-grafikov-funkcij-2d3d",
+        "title": "Project intake: Онлайн-калькулятор графиков функций 2D/3D"
+      },
+      {
+        "key": "prd",
+        "id": "7e6585d3-3b6d-44ba-ba9a-93a7ccf811a6",
+        "identifier": "HEL-83",
+        "url": "https://linear.app/heliagents/issue/HEL-83/prd-and-success-criteria-onlajn-kalkulyator-grafikov-funkcij-2d3d",
+        "title": "PRD and success criteria: Онлайн-калькулятор графиков функций 2D/3D"
+      },
+      {
+        "key": "harness",
+        "id": "8cd1203b-3df8-452d-9bd6-c094d8cbf7f5",
+        "identifier": "HEL-84",
+        "url": "https://linear.app/heliagents/issue/HEL-84/engineering-harness-onlajn-kalkulyator-grafikov-funkcij-2d3d",
+        "title": "Engineering harness: Онлайн-калькулятор графиков функций 2D/3D"
+      },
+      {
+        "key": "inputs",
+        "id": "0516f7dd-b949-495b-a1c7-7fb7e5fcc004",
+        "identifier": "HEL-85",
+        "url": "https://linear.app/heliagents/issue/HEL-85/input-contract-and-readiness-onlajn-kalkulyator-grafikov-funkcij-2d3d",
+        "title": "Input contract and readiness: Онлайн-калькулятор графиков функций 2D/3D"
+      },
+      {
+        "key": "backlog",
+        "id": "762622d0-e21f-434b-81d8-ffaf4ce855da",
+        "identifier": "HEL-86",
+        "url": "https://linear.app/heliagents/issue/HEL-86/backlog-decomposition-onlajn-kalkulyator-grafikov-funkcij-2d3d",
+        "title": "Backlog decomposition: Онлайн-калькулятор графиков функций 2D/3D"
+      },
+      {
+        "key": "deploy",
+        "id": "004da238-a547-4a9e-b101-56449a98bad5",
+        "identifier": "HEL-87",
+        "url": "https://linear.app/heliagents/issue/HEL-87/deployment-setup-onlajn-kalkulyator-grafikov-funkcij-2d3d",
+        "title": "Deployment setup: Онлайн-калькулятор графиков функций 2D/3D"
+      }
+    ]
+  },
+  "telegram": {
+    "chat_id": "-1003774956386",
+    "topic_id": "1375",
+    "topic_name": "Онлайн-калькулятор графиков функций 2D/3D"
+  },
+  "deploy": {
+    "profile": "static-web"
+  },
+  "execution": {
+    "strategy": "host"
+  },
+  "symphony": {
+    "unit_name": "symphony@2d-3d.service",
+    "launcher_path": "/home/helionaut/srv/symphony/2d-3d.sh",
+    "log_path": "/home/helionaut/srv/symphony/logs/2d-3d.log"
+  }
+}
