@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 
 test.describe('graph calculator flows', () => {
   test('renders responsive 2D and 3D calculator shells', async ({ page }, testInfo) => {
+    test.setTimeout(60_000)
+
     await page.goto('/')
 
     const formulaInput = page.getByRole('textbox', { name: 'Expression' })
@@ -15,6 +17,8 @@ test.describe('graph calculator flows', () => {
     await expect(page.getByTestId('plot-2d')).toBeVisible()
     await expect(page.getByTestId('plot-2d').locator('.main-svg').first()).toBeVisible()
     await expect(page.getByTestId('rendered-expression-value')).toHaveText('y = sin(x)')
+    await expect(page.getByTestId('rendered-x-range')).toHaveText('-6.28 to 6.28')
+    await expect(page.getByTestId('rendered-y-range')).toHaveText('-1.50 to 1.50')
 
     await page.getByLabel('Samples').fill('181')
     await renderButton.click()
@@ -30,11 +34,19 @@ test.describe('graph calculator flows', () => {
         steps: 8,
       })
       await page.mouse.up()
+
+      if (testInfo.project.name === 'desktop-chromium') {
+        await expect(page.getByTestId('rendered-x-range')).not.toHaveText('-6.28 to 6.28')
+        await expect(page.getByLabel('X minimum')).not.toHaveValue('-6.28')
+
+        await page.mouse.dblclick(curveBox.x + curveBox.width / 2, curveBox.y + curveBox.height / 2)
+        await expect(page.getByTestId('rendered-x-range')).toHaveText('-6.28 to 6.28')
+        await expect(page.getByTestId('rendered-y-range')).toHaveText('-1.50 to 1.50')
+      }
     }
 
-    await page.screenshot({
-      path: `reports/out/visual/hel-89-${testInfo.project.name}-2d.png`,
-      fullPage: true,
+    await page.locator('main').screenshot({
+      path: `reports/out/visual/hel-90-${testInfo.project.name}-2d.png`,
     })
 
     if (testInfo.project.name === 'desktop-chromium') {
@@ -71,9 +83,8 @@ test.describe('graph calculator flows', () => {
       await page.mouse.wheel(0, -150)
     }
 
-    await page.screenshot({
-      path: `reports/out/visual/hel-89-${testInfo.project.name}-3d.png`,
-      fullPage: true,
+    await page.locator('main').screenshot({
+      path: `reports/out/visual/hel-90-${testInfo.project.name}-3d.png`,
     })
   })
 })

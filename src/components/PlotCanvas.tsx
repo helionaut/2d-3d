@@ -3,6 +3,8 @@ import type { Config } from 'plotly.js'
 import plotComponentFactoryModule from 'react-plotly.js/factory.js'
 import Plotly from 'plotly.js-dist-min'
 
+import type { PlotViewportRelayoutEvent } from '../lib/graphControls'
+
 const createPlotlyComponent = (
   'default' in plotComponentFactoryModule
     ? plotComponentFactoryModule.default
@@ -12,6 +14,7 @@ const createPlotlyComponent = (
   config: Partial<Config>
   data: object[]
   layout: object
+  onRelayout?: (event: PlotViewportRelayoutEvent) => void
   style: CSSProperties
   useResizeHandler?: boolean
 }>
@@ -31,9 +34,10 @@ interface PlotCanvasProps {
     layout: object
   }
   plotTestId: string
+  onViewportChange?: (event: PlotViewportRelayoutEvent) => void
 }
 
-export function PlotCanvas({ plot, plotTestId }: PlotCanvasProps) {
+export function PlotCanvas({ plot, plotTestId, onViewportChange }: PlotCanvasProps) {
   return (
     <div className="plot-shell" data-testid={plotTestId}>
       <Plot
@@ -41,6 +45,7 @@ export function PlotCanvas({ plot, plotTestId }: PlotCanvasProps) {
         config={plotConfig}
         data={plot.data}
         layout={plot.layout}
+        onRelayout={onViewportChange}
         style={{ height: '100%', width: '100%' }}
         useResizeHandler
       />

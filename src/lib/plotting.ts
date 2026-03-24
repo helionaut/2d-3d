@@ -12,10 +12,17 @@ export interface PlotModel {
   title: string
   description: string
   interactionHint: string
+  notice?: string
   plot: {
     data: Partial<Data>[]
     layout: Partial<Layout>
   }
+}
+
+export interface CurveSamplingResult {
+  xValues: number[]
+  yValues: Array<number | null>
+  notice?: string
 }
 
 export function buildPlotModel<Mode extends keyof PlotControlsByMode>(
@@ -28,27 +35,21 @@ export function buildPlotModel<Mode extends keyof PlotControlsByMode>(
 }
 
 function buildCurvePlot(result: ExpressionValidationSuccess, controls: PlotControls2D): PlotModel {
-  const xValues = sampleLinear(controls.x.min, controls.x.max, controls.samples)
-  const yValues = xValues.map((x) =>
-    sanitizeValue(
-      evaluateExpressionAst(result.ast, {
-        x,
-        parameterValues: result.parameterValues,
-      }),
-    ),
-  )
+  const curve = evaluateCurveSamples(result, controls)
+
   return {
     plotTestId: 'plot-2d',
     title: '2D curve',
     description: MODE_DEFINITIONS['2d'].description,
     interactionHint: 'Drag to pan and use the wheel or trackpad to zoom.',
+    notice: curve.notice,
     plot: {
       data: [
         {
           type: 'scatter',
           mode: 'lines',
-          x: xValues,
-          y: yValues,
+          x: curve.xValues,
+          y: curve.yValues,
           line: {
             color: '#0a4a6f',
             width: 4,
@@ -149,7 +150,39 @@ function buildSurfacePlot(result: ExpressionValidationSuccess, controls: PlotCon
   }
 }
 
-function sampleLinear(start: number, end: number, count: number): number[] {
+export function evaluateCurveSamples(
+  result: ExpressionValidationSuccess,
+  controls: PlotControls2D,
+): CurveSamplingResult {
+  const xValues = sampleLinear(controls.x.min, controls.x.max, controls.samples)
+
+  try {
+    return {
+      xValues,
+      yValues: xValues.map((x) =>
+        sanitizeValue(
+          evaluateExpressionAst(result.ast, {
+            x,
+            parameterValues: result.parameterValues,
+          }),
+        ),
+      ),
+    }
+  } catch {
+    return {
+      xValues,
+      yValues: xValues.map(() => null),
+      notice:
+        'Unable to evaluate this curve across the current x range. Adjust the expression, parameters, or viewport and try again.',
+    }
+  }
+}
+
+export function sampleLinear(start: number, end: number, count: number): number[] {
+  if (count <= 1) {
+    return [start]
+  }
+
   const step = (end - start) / (count - 1)
   return Array.from({ length: count }, (_, index) => start + step * index)
 }

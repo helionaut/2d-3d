@@ -41,6 +41,8 @@ export interface PlotControlDraft3D {
   ySamples: string
 }
 
+export type PlotViewportRelayoutEvent = Record<string, unknown>
+
 export type PlotControlsByMode = {
   '2d': PlotControls2D
   '3d': PlotControls3D
@@ -250,6 +252,43 @@ export function formatSampleSummary(value: number): string {
   return String(value)
 }
 
+export function applyViewportRelayout2D({
+  currentControls,
+  resetControls,
+  relayoutData,
+}: {
+  currentControls: PlotControls2D
+  resetControls: PlotControls2D
+  relayoutData: PlotViewportRelayoutEvent
+}): PlotControls2D | null {
+  const nextControls: PlotControls2D = {
+    x: { ...currentControls.x },
+    y: { ...currentControls.y },
+    samples: currentControls.samples,
+  }
+  let changed = false
+
+  for (const axis of ['x', 'y'] as const) {
+    if (readAxisAutorange(relayoutData, axis)) {
+      if (!rangesMatch(nextControls[axis], resetControls[axis])) {
+        nextControls[axis] = { ...resetControls[axis] }
+        changed = true
+      }
+      continue
+    }
+
+    const nextRange = readAxisRange(relayoutData, axis, currentControls[axis])
+    if (!nextRange || rangesMatch(nextControls[axis], nextRange)) {
+      continue
+    }
+
+    nextControls[axis] = nextRange
+    changed = true
+  }
+
+  return changed ? nextControls : null
+}
+
 function cloneControls<TControls extends PlotControls2D | PlotControls3D>(controls: TControls): TControls {
   return structuredClone(controls)
 }
@@ -317,4 +356,61 @@ function formatDraftNumber(value: number): string {
 
 function formatDisplayNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(2)
+}
+
+function readAxisAutorange(relayoutData: PlotViewportRelayoutEvent, axis: 'x' | 'y'): boolean {
+  return relayoutData[`${axis}axis.autorange`] === true
+}
+
+function readAxisRange(
+  relayoutData: PlotViewportRelayoutEvent,
+  axis: 'x' | 'y',
+  fallbackRange: NumericRange,
+): NumericRange | null {
+  const directRange = relayoutData[`${axis}axis.range`]
+
+  if (Array.isArray(directRange) && directRange.length >= 2) {
+    const min = parseFiniteNumber(directRange[0])
+    const max = parseFiniteNumber(directRange[1])
+
+    if (min !== null && max !== null && min < max) {
+      return { min, max }
+    }
+  }
+
+  const minimum = parseFiniteNumber(relayoutData[`${axis}axis.range[0]`]) ?? fallbackRange.min
+  const maximum = parseFiniteNumber(relayoutData[`${axis}axis.range[1]`]) ?? fallbackRange.max
+
+  if (
+    relayoutData[`${axis}axis.range[0]`] === undefined &&
+    relayoutData[`${axis}axis.range[1]`] === undefined
+  ) {
+    return null
+  }
+
+  if (minimum >= maximum) {
+    return null
+  }
+
+  return {
+    min: minimum,
+    max: maximum,
+  }
+}
+
+function parseFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  return null
+}
+
+function rangesMatch(left: NumericRange, right: NumericRange): boolean {
+  return left.min === right.min && left.max === right.max
 }
