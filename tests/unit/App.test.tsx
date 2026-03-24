@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../../src/components/PlotCanvas', () => ({
-  PlotCanvas: ({ fixture }: { fixture: { plotTestId: string } }) => (
-    <div data-testid={`mock-${fixture.plotTestId}`} />
+  PlotCanvas: ({ plotTestId }: { plotTestId: string }) => (
+    <div data-testid={`mock-${plotTestId}`} />
   ),
 }))
 
@@ -14,25 +14,49 @@ beforeAll(async () => {
 })
 
 describe('App', () => {
-  it('surfaces the harness contract and deterministic paths', () => {
+  it('stores only the normalized right-hand side for valid 2D input', () => {
     render(<App />)
 
-    expect(
-      screen.getByRole('heading', {
-        name: /Static-web graphing baseline with one 2D proof and one 3D proof/i,
-      }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('npm run check')).toBeInTheDocument()
-    expect(screen.getByText('fixtures/graphFixtures.ts')).toBeInTheDocument()
-    expect(screen.getByText('reports/out/')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Formula' })).toHaveValue('y = sin(x)')
+    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('sin(x)')
+    expect(screen.getByText(/valid formula/i)).toBeInTheDocument()
+    expect(screen.getByTestId('mock-plot-2d')).toBeInTheDocument()
   })
 
-  it('shows both canonical graph expressions from the PRD', () => {
+  it('renders inline validation errors and keeps the last valid graph until recovery', () => {
     render(<App />)
 
-    expect(screen.getAllByText('y = sin(x)')).toHaveLength(2)
-    expect(screen.getAllByText('z = sin(x) * cos(y)')).toHaveLength(2)
-    expect(screen.getAllByTestId('mock-plot-2d')[0]).toBeInTheDocument()
-    expect(screen.getAllByTestId('mock-plot-3d')[0]).toBeInTheDocument()
+    const formulaInput = screen.getByRole('textbox', { name: 'Formula' })
+    fireEvent.change(formulaInput, { target: { value: '2x' } })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/implicit multiplication/i)
+    expect(screen.getByText(/showing the last valid graph while you edit/i)).toBeInTheDocument()
+    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('sin(x)')
+    expect(screen.getByTestId('mock-plot-2d')).toBeInTheDocument()
+
+    fireEvent.change(formulaInput, { target: { value: 'x ^ 2' } })
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('x ^ 2')
+  })
+
+  it('surfaces prefix mismatch errors in 3D mode and recovers after correction', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /3D surface/i }))
+
+    const formulaInput = screen.getByRole('textbox', { name: 'Formula' })
+    expect(formulaInput).toHaveValue('z = sin(x) * cos(y)')
+    expect(screen.getByTestId('mock-plot-3d')).toBeInTheDocument()
+
+    fireEvent.change(formulaInput, { target: { value: 'y = sin(x) * cos(y)' } })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/use `z =` in 3D mode/i)
+    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('sin(x) * cos(y)')
+
+    fireEvent.change(formulaInput, { target: { value: 'sin(x) * cos(y)' } })
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('sin(x) * cos(y)')
   })
 })

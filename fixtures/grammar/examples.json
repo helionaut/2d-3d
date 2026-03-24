@@ -2,6 +2,14 @@
   "version": 1,
   "cases": [
     {
+      "id": "valid-2d-raw-canonical",
+      "kind": "valid",
+      "mode": "2d",
+      "rawInput": "sin(x)",
+      "normalizedExpression": "sin(x)",
+      "parameterValues": {}
+    },
+    {
       "id": "valid-2d-prefixed-canonical",
       "kind": "valid",
       "mode": "2d",
@@ -10,10 +18,18 @@
       "parameterValues": {}
     },
     {
-      "id": "valid-3d-canonical",
+      "id": "valid-3d-raw-canonical",
       "kind": "valid",
       "mode": "3d",
       "rawInput": "sin(x) * cos(y)",
+      "normalizedExpression": "sin(x) * cos(y)",
+      "parameterValues": {}
+    },
+    {
+      "id": "valid-3d-prefixed-canonical",
+      "kind": "valid",
+      "mode": "3d",
+      "rawInput": "z = sin(x) * cos(y)",
       "normalizedExpression": "sin(x) * cos(y)",
       "parameterValues": {}
     },
@@ -27,6 +43,21 @@
         "a": 1,
         "b": 0.5
       }
+    },
+    {
+      "id": "valid-3d-with-constants",
+      "kind": "valid",
+      "mode": "3d",
+      "rawInput": "sin(x / pi) + e ^ -y",
+      "normalizedExpression": "sin(x / pi) + e ^ -y",
+      "parameterValues": {}
+    },
+    {
+      "id": "invalid-empty-expression",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "   ",
+      "expectedError": "empty-expression"
     },
     {
       "id": "invalid-2d-implicit-multiplication",
@@ -50,6 +81,13 @@
       "expectedError": "unsupported-dependent-variable-prefix"
     },
     {
+      "id": "invalid-unknown-identifier",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "foo + x",
+      "expectedError": "unknown-identifier"
+    },
+    {
       "id": "invalid-unknown-function",
       "kind": "invalid",
       "mode": "2d",
@@ -57,11 +95,62 @@
       "expectedError": "unsupported-function"
     },
     {
+      "id": "invalid-wrong-arity",
+      "kind": "invalid",
+      "mode": "3d",
+      "rawInput": "max(x)",
+      "expectedError": "wrong-function-arity"
+    },
+    {
       "id": "invalid-mismatched-parentheses",
       "kind": "invalid",
       "mode": "3d",
       "rawInput": "sin(x * cos(y)",
       "expectedError": "mismatched-parentheses"
+    },
+    {
+      "id": "invalid-malformed-numeric-literal",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "1.2.3",
+      "expectedError": "malformed-numeric-literal"
+    },
+    {
+      "id": "invalid-reserved-parameter-id",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "a * x",
+      "parameterValues": {
+        "y": 1
+      },
+      "expectedError": "reserved-parameter-id"
+    },
+    {
+      "id": "invalid-parameter-id-format",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "a * x",
+      "parameterValues": {
+        "A": 1
+      },
+      "expectedError": "invalid-parameter-id"
+    },
+    {
+      "id": "invalid-parameter-value",
+      "kind": "invalid",
+      "mode": "2d",
+      "rawInput": "a * x",
+      "parameterValues": {
+        "a": null
+      },
+      "expectedError": "invalid-parameter-value"
+    },
+    {
+      "id": "invalid-multi-line-expression",
+      "kind": "invalid",
+      "mode": "3d",
+      "rawInput": "sin(x)\n+ cos(y)",
+      "expectedError": "multi-line-expression"
     }
   ]
 }
