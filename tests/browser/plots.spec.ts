@@ -46,7 +46,7 @@ test.describe('graph calculator flows', () => {
     }
 
     await page.locator('main').screenshot({
-      path: `reports/out/visual/hel-90-${testInfo.project.name}-2d.png`,
+      path: `reports/out/visual/hel-91-${testInfo.project.name}-2d.png`,
     })
 
     if (testInfo.project.name === 'desktop-chromium') {
@@ -84,7 +84,7 @@ test.describe('graph calculator flows', () => {
     }
 
     await page.locator('main').screenshot({
-      path: `reports/out/visual/hel-90-${testInfo.project.name}-3d.png`,
+      path: `reports/out/visual/hel-91-${testInfo.project.name}-3d.png`,
     })
   })
 })

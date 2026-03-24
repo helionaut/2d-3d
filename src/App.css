@@ -360,6 +360,14 @@
   height: 100%;
 }
 
+.plot-shell .js-plotly-plot,
+.plot-shell .plot-container,
+.plot-shell .svg-container,
+.plot-shell canvas {
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
 .support-card {
   align-content: start;
 }

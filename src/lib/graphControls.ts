@@ -81,6 +81,7 @@ export interface SampleControlDefinition {
 }
 
 const twoPi = Math.PI * 2
+const MAX_SURFACE_GRID_CELLS = 12_000
 
 export const CONTROL_LAYOUT: Record<
   GraphMode,
@@ -136,14 +137,14 @@ export const CONTROL_LAYOUT: Record<
         label: 'X samples',
         description: 'Columns sampled along the x-axis.',
         min: 9,
-        max: 81,
+        max: 121,
       },
       {
         field: 'ySamples',
         label: 'Y samples',
         description: 'Rows sampled along the y-axis.',
         min: 9,
-        max: 81,
+        max: 121,
       },
     ],
   },
@@ -158,9 +159,9 @@ const DEFAULT_PLOT_CONTROLS: PlotControlsByMode = {
   '3d': {
     x: { min: -Math.PI, max: Math.PI },
     y: { min: -Math.PI, max: Math.PI },
-    z: { min: -1, max: 1 },
-    xSamples: 33,
-    ySamples: 33,
+    z: { min: -1.5, max: 1.5 },
+    xSamples: 96,
+    ySamples: 96,
   },
 }
 
@@ -229,6 +230,14 @@ export function validatePlotControlDraft<Mode extends GraphMode>(
   const ySamples = parseSampleDraft(surfaceDraft.ySamples, CONTROL_LAYOUT['3d'].sampleControls[1], errors)
 
   if (!x || !y || !z || xSamples === null || ySamples === null) {
+    return { ok: false, errors }
+  }
+
+  if (xSamples * ySamples > MAX_SURFACE_GRID_CELLS) {
+    const message =
+      `Combined surface density must stay at or below ${MAX_SURFACE_GRID_CELLS.toLocaleString()} cells.`
+    errors.xSamples = message
+    errors.ySamples = message
     return { ok: false, errors }
   }
 

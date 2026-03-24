@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   applyViewportRelayout2D,
   createDefaultPlotControls,
+  validatePlotControlDraft,
   type PlotControls2D,
 } from '../../src/lib/graphControls'
 
@@ -67,5 +68,37 @@ describe('applyViewportRelayout2D', () => {
         },
       }),
     ).toBeNull()
+  })
+})
+
+describe('validatePlotControlDraft', () => {
+  it('allows the canonical 3D preset density', () => {
+    const validation = validatePlotControlDraft('3d', {
+      x: { min: '-3.14', max: '3.14' },
+      y: { min: '-3.14', max: '3.14' },
+      z: { min: '-1.5', max: '1.5' },
+      xSamples: '96',
+      ySamples: '96',
+    })
+
+    expect(validation.ok).toBe(true)
+  })
+
+  it('returns readable density errors when the combined 3D grid is too large', () => {
+    const validation = validatePlotControlDraft('3d', {
+      x: { min: '-3.14', max: '3.14' },
+      y: { min: '-3.14', max: '3.14' },
+      z: { min: '-1.5', max: '1.5' },
+      xSamples: '121',
+      ySamples: '121',
+    })
+
+    expect(validation.ok).toBe(false)
+    if (validation.ok) {
+      throw new Error('Expected dense 3D controls to fail validation.')
+    }
+
+    expect(validation.errors.xSamples).toContain('Combined surface density')
+    expect(validation.errors.ySamples).toContain('Combined surface density')
   })
 })

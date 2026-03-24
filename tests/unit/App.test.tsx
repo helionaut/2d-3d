@@ -63,9 +63,9 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /3D surface/i }))
 
     expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('z = sin(x) * cos(y)')
-    expect(screen.getByLabelText('Z minimum')).toHaveValue(-1)
-    expect(screen.getByLabelText('X samples')).toHaveValue(33)
-    expect(screen.getByLabelText('Y samples')).toHaveValue(33)
+    expect(screen.getByLabelText('Z minimum')).toHaveValue(-1.5)
+    expect(screen.getByLabelText('X samples')).toHaveValue(96)
+    expect(screen.getByLabelText('Y samples')).toHaveValue(96)
     expect(screen.queryByLabelText('Samples')).not.toBeInTheDocument()
     expect(screen.getByTestId('mock-plot-3d')).toBeInTheDocument()
   })
@@ -109,10 +109,10 @@ describe('App', () => {
 
     expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('z = sin(x) * cos(y)')
     expect(screen.getByTestId('rendered-expression-value')).toHaveTextContent('z = sin(x) * cos(y)')
-    expect(screen.getByLabelText('Z minimum')).toHaveValue(-1)
-    expect(screen.getByLabelText('X samples')).toHaveValue(33)
-    expect(screen.getByTestId('rendered-z-range')).toHaveTextContent('-1 to 1')
-    expect(screen.getByTestId('rendered-x-samples')).toHaveTextContent('33')
+    expect(screen.getByLabelText('Z minimum')).toHaveValue(-1.5)
+    expect(screen.getByLabelText('X samples')).toHaveValue(96)
+    expect(screen.getByTestId('rendered-z-range')).toHaveTextContent('-1.50 to 1.50')
+    expect(screen.getByTestId('rendered-x-samples')).toHaveTextContent('96')
   })
 
   it('syncs the 2D controls with viewport relayout and plot reset events', () => {
@@ -135,5 +135,23 @@ describe('App', () => {
     expect(screen.getByLabelText('Y maximum')).toHaveValue(1.5)
     expect(screen.getByTestId('rendered-x-range')).toHaveTextContent('-6.28 to 6.28')
     expect(screen.getByTestId('rendered-y-range')).toHaveTextContent('-1.50 to 1.50')
+  })
+
+  it('keeps the last rendered 3D surface active when density settings are invalid', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /3D surface/i }))
+    fireEvent.change(screen.getByLabelText('X samples'), { target: { value: '121' } })
+    fireEvent.change(screen.getByLabelText('Y samples'), { target: { value: '121' } })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Review the highlighted graph controls before rendering.',
+    )
+    expect(screen.getAllByText(/Combined surface density must stay at or below/i)).toHaveLength(2)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Render graph' }))
+
+    expect(screen.getByTestId('rendered-x-samples')).toHaveTextContent('96')
+    expect(screen.getByTestId('rendered-y-samples')).toHaveTextContent('96')
   })
 })
