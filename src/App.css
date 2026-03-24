@@ -1,12 +1,17 @@
 .calculator-shell {
   display: grid;
-  gap: 24px;
-  padding: 28px;
+  gap: 22px;
+  padding: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 .hero-card,
 .panel,
-.mode-button {
+.mode-button,
+.control-card,
+.primary-button,
+.secondary-button {
   border: 1px solid var(--border);
   border-radius: 28px;
   background: var(--panel);
@@ -16,7 +21,7 @@
 .hero-card {
   display: grid;
   gap: 22px;
-  grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.95fr);
   padding: 28px;
   overflow: hidden;
   position: relative;
@@ -113,17 +118,16 @@
 }
 
 .workspace-grid,
-.support-grid {
+.range-grid,
+.sample-grid,
+.rendered-state-grid {
   display: grid;
   gap: 18px;
 }
 
 .workspace-grid {
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.25fr);
-}
-
-.support-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
 }
 
 .panel {
@@ -147,7 +151,7 @@
 }
 
 .formula-input {
-  min-height: 108px;
+  min-height: 92px;
   padding: 16px 18px;
   resize: vertical;
   border-radius: 22px;
@@ -180,6 +184,11 @@
   background: rgba(233, 248, 241, 0.9);
 }
 
+.status-banner.is-pending {
+  border-color: rgba(10, 74, 111, 0.18);
+  background: rgba(232, 242, 248, 0.9);
+}
+
 .status-banner.is-error {
   border-color: rgba(164, 51, 38, 0.18);
   background: rgba(255, 241, 238, 0.94);
@@ -194,43 +203,149 @@
   color: #8f4a3b;
 }
 
-.state-grid {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.state-card {
-  display: grid;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 22px;
-  background: rgba(255, 249, 232, 0.78);
-  border: 1px solid rgba(173, 122, 19, 0.16);
-}
-
-.state-card p:last-child,
-.state-card code {
-  color: var(--text-strong);
-}
-
-.plot-panel {
-  align-content: start;
-}
-
-.plot-meta {
+.action-row {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.plot-meta div {
+.primary-button,
+.secondary-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 18px;
+  font: 700 0.95rem/1 var(--sans);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.primary-button {
+  border-color: rgba(10, 74, 111, 0.36);
+  background: linear-gradient(135deg, rgba(10, 74, 111, 0.98), rgba(23, 108, 154, 0.92));
+  color: #f9fbfc;
+}
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--text-strong);
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.primary-button:focus-visible,
+.secondary-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.control-sections,
+.control-group {
+  display: grid;
+  gap: 16px;
+}
+
+.group-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.range-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sample-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.control-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 22px;
+  background: rgba(255, 249, 232, 0.64);
+  border-color: rgba(173, 122, 19, 0.14);
+}
+
+.control-card legend,
+.sample-title {
+  font-family: var(--heading);
+  font-size: 1.2rem;
+  color: var(--text-strong);
+}
+
+.control-copy {
+  color: var(--text-soft);
+}
+
+.range-card {
+  min-inline-size: 0;
+}
+
+.range-inputs {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.inline-field,
+.sample-card {
+  display: grid;
+  gap: 8px;
+}
+
+.inline-field span,
+.sample-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.inline-field input,
+.sample-card input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--text-strong);
+  font: 1rem/1.2 var(--mono);
+}
+
+.plot-panel,
+.editor-panel {
+  align-content: start;
+}
+
+.field-error {
+  color: #8f4a3b;
+  font-size: 0.9rem;
+}
+
+.rendered-state-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rendered-state-grid div {
   display: grid;
   gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(10, 74, 111, 0.1);
 }
 
 .plot-shell {
-  min-height: 420px;
+  min-height: 540px;
   padding: 10px;
   border-radius: 22px;
   background: var(--plot-surface);
@@ -254,9 +369,17 @@
   line-height: 1.7;
 }
 
+.support-card-inline h2 {
+  font-size: 1.35rem;
+}
+
 @media (max-width: 1100px) {
   .workspace-grid {
     grid-template-columns: 1fr;
+  }
+
+  .rendered-state-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -266,10 +389,15 @@
   }
 
   .hero-card,
-  .support-grid,
-  .state-grid,
-  .plot-meta {
+  .rendered-state-grid,
+  .range-grid,
+  .sample-grid,
+  .action-row {
     grid-template-columns: 1fr;
+  }
+
+  .plot-shell {
+    min-height: 440px;
   }
 }
 
@@ -281,13 +409,20 @@
 
   .hero-card,
   .panel,
-  .mode-button {
+  .mode-button,
+  .control-card,
+  .primary-button,
+  .secondary-button {
     border-radius: 22px;
   }
 
   .hero-card,
   .panel {
     padding: 18px;
+  }
+
+  .range-inputs {
+    grid-template-columns: 1fr;
   }
 
   .plot-shell {
