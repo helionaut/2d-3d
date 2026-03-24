@@ -2,8 +2,18 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../../src/components/PlotCanvas', () => ({
-  PlotCanvas: ({ plotTestId }: { plotTestId: string }) => (
-    <div data-testid={`mock-${plotTestId}`} />
+  PlotCanvas: ({
+    plot,
+    plotTestId,
+  }: {
+    plot: { data: Array<{ x?: unknown[]; y?: unknown[] }> }
+    plotTestId: string
+  }) => (
+    <div data-testid={`mock-${plotTestId}`}>
+      <span data-testid={`${plotTestId}-series-length`}>
+        {Array.isArray(plot.data[0]?.x) ? plot.data[0].x.length : 0}
+      </span>
+    </div>
   ),
 }))
 
@@ -14,49 +24,68 @@ beforeAll(async () => {
 })
 
 describe('App', () => {
-  it('stores only the normalized right-hand side for valid 2D input', () => {
+  it('shows 2D controls by default and swaps to 3D-specific controls on mode change', () => {
     render(<App />)
 
-    expect(screen.getByRole('textbox', { name: 'Formula' })).toHaveValue('y = sin(x)')
-    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('sin(x)')
-    expect(screen.getByText(/valid formula/i)).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('y = sin(x)')
+    expect(screen.getByLabelText('X minimum')).toHaveValue(-6.28)
+    expect(screen.getByLabelText('Y maximum')).toHaveValue(1.5)
+    expect(screen.getByLabelText('Samples')).toHaveValue(241)
+    expect(screen.queryByLabelText('Z minimum')).not.toBeInTheDocument()
     expect(screen.getByTestId('mock-plot-2d')).toBeInTheDocument()
-  })
-
-  it('renders inline validation errors and keeps the last valid graph until recovery', () => {
-    render(<App />)
-
-    const formulaInput = screen.getByRole('textbox', { name: 'Formula' })
-    fireEvent.change(formulaInput, { target: { value: '2x' } })
-
-    expect(screen.getByRole('alert')).toHaveTextContent(/implicit multiplication/i)
-    expect(screen.getByText(/showing the last valid graph while you edit/i)).toBeInTheDocument()
-    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('sin(x)')
-    expect(screen.getByTestId('mock-plot-2d')).toBeInTheDocument()
-
-    fireEvent.change(formulaInput, { target: { value: 'x ^ 2' } })
-
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('x ^ 2')
-  })
-
-  it('surfaces prefix mismatch errors in 3D mode and recovers after correction', () => {
-    render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /3D surface/i }))
 
-    const formulaInput = screen.getByRole('textbox', { name: 'Formula' })
-    expect(formulaInput).toHaveValue('z = sin(x) * cos(y)')
+    expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('z = sin(x) * cos(y)')
+    expect(screen.getByLabelText('Z minimum')).toHaveValue(-1)
+    expect(screen.getByLabelText('X samples')).toHaveValue(33)
+    expect(screen.getByLabelText('Y samples')).toHaveValue(33)
+    expect(screen.queryByLabelText('Samples')).not.toBeInTheDocument()
     expect(screen.getByTestId('mock-plot-3d')).toBeInTheDocument()
+  })
 
-    fireEvent.change(formulaInput, { target: { value: 'y = sin(x) * cos(y)' } })
+  it('applies formula and shared control changes only after render', () => {
+    render(<App />)
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/use `z =` in 3D mode/i)
-    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('sin(x) * cos(y)')
+    const expressionInput = screen.getByRole('textbox', { name: 'Expression' })
+    fireEvent.change(expressionInput, { target: { value: 'x ^ 2' } })
+    fireEvent.change(screen.getByLabelText('X minimum'), { target: { value: '-4' } })
+    fireEvent.change(screen.getByLabelText('Y maximum'), { target: { value: '20' } })
+    fireEvent.change(screen.getByLabelText('Samples'), { target: { value: '101' } })
 
-    fireEvent.change(formulaInput, { target: { value: 'sin(x) * cos(y)' } })
+    expect(screen.getByTestId('rendered-expression-value')).toHaveTextContent('y = sin(x)')
+    expect(screen.getByTestId('rendered-x-range')).toHaveTextContent('-6.28 to 6.28')
+    expect(screen.getByTestId('rendered-y-range')).toHaveTextContent('-1.50 to 1.50')
+    expect(screen.getByTestId('rendered-samples')).toHaveTextContent('241')
+    expect(screen.getByTestId('plot-2d-series-length')).toHaveTextContent('241')
 
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    expect(screen.getByTestId('stored-expression-value')).toHaveTextContent('sin(x) * cos(y)')
+    fireEvent.click(screen.getByRole('button', { name: 'Render graph' }))
+
+    expect(screen.getByTestId('rendered-expression-value')).toHaveTextContent('y = x ^ 2')
+    expect(screen.getByTestId('rendered-x-range')).toHaveTextContent('-4 to 6.28')
+    expect(screen.getByTestId('rendered-y-range')).toHaveTextContent('-1.50 to 20')
+    expect(screen.getByTestId('rendered-samples')).toHaveTextContent('101')
+    expect(screen.getByTestId('plot-2d-series-length')).toHaveTextContent('101')
+  })
+
+  it('resets the active mode back to its default formula and controls', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /3D surface/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Expression' }), {
+      target: { value: 'z = x * y' },
+    })
+    fireEvent.change(screen.getByLabelText('Z minimum'), { target: { value: '-5' } })
+    fireEvent.change(screen.getByLabelText('X samples'), { target: { value: '21' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Render graph' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset mode' }))
+
+    expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('z = sin(x) * cos(y)')
+    expect(screen.getByTestId('rendered-expression-value')).toHaveTextContent('z = sin(x) * cos(y)')
+    expect(screen.getByLabelText('Z minimum')).toHaveValue(-1)
+    expect(screen.getByLabelText('X samples')).toHaveValue(33)
+    expect(screen.getByTestId('rendered-z-range')).toHaveTextContent('-1 to 1')
+    expect(screen.getByTestId('rendered-x-samples')).toHaveTextContent('33')
   })
 })

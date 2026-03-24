@@ -5,6 +5,7 @@ import {
   evaluateExpressionAst,
   type ExpressionValidationSuccess,
 } from './expression'
+import type { PlotControls2D, PlotControls3D, PlotControlsByMode } from './graphControls'
 
 export interface PlotModel {
   plotTestId: string
@@ -17,18 +18,17 @@ export interface PlotModel {
   }
 }
 
-const tau = Math.PI * 2
-const curveSamples = 241
-const surfaceSamples = 33
-
-export function buildPlotModel(result: ExpressionValidationSuccess): PlotModel {
+export function buildPlotModel<Mode extends keyof PlotControlsByMode>(
+  result: ExpressionValidationSuccess & { mode: Mode },
+  controls: PlotControlsByMode[Mode],
+): PlotModel {
   return result.mode === '2d'
-    ? buildCurvePlot(result)
-    : buildSurfacePlot(result)
+    ? buildCurvePlot(result, controls as PlotControls2D)
+    : buildSurfacePlot(result, controls as PlotControls3D)
 }
 
-function buildCurvePlot(result: ExpressionValidationSuccess): PlotModel {
-  const xValues = sampleLinear(-tau, tau, curveSamples)
+function buildCurvePlot(result: ExpressionValidationSuccess, controls: PlotControls2D): PlotModel {
+  const xValues = sampleLinear(controls.x.min, controls.x.max, controls.samples)
   const yValues = xValues.map((x) =>
     sanitizeValue(
       evaluateExpressionAst(result.ast, {
@@ -37,12 +37,9 @@ function buildCurvePlot(result: ExpressionValidationSuccess): PlotModel {
       }),
     ),
   )
-  const finiteValues = yValues.filter((value): value is number => value !== null)
-  const yRange = calculateRange(finiteValues)
-
   return {
     plotTestId: 'plot-2d',
-    title: '2D curve preview',
+    title: '2D curve',
     description: MODE_DEFINITIONS['2d'].description,
     interactionHint: 'Drag to pan and use the wheel or trackpad to zoom.',
     plot: {
@@ -66,27 +63,28 @@ function buildCurvePlot(result: ExpressionValidationSuccess): PlotModel {
         plot_bgcolor: 'rgba(255, 255, 255, 0.72)',
         xaxis: {
           title: { text: 'x' },
-          range: [-tau, tau],
+          range: [controls.x.min, controls.x.max],
           zeroline: true,
           zerolinecolor: '#c9cfcb',
           gridcolor: '#d9dfdb',
         },
         yaxis: {
           title: { text: 'y' },
+          range: [controls.y.min, controls.y.max],
           zeroline: true,
           zerolinecolor: '#c9cfcb',
           gridcolor: '#d9dfdb',
-          ...(yRange ? { range: yRange } : {}),
         },
       },
     },
   }
 }
 
-function buildSurfacePlot(result: ExpressionValidationSuccess): PlotModel {
-  const axisValues = sampleLinear(-Math.PI, Math.PI, surfaceSamples)
-  const zValues = axisValues.map((y) =>
-    axisValues.map((x) =>
+function buildSurfacePlot(result: ExpressionValidationSuccess, controls: PlotControls3D): PlotModel {
+  const xValues = sampleLinear(controls.x.min, controls.x.max, controls.xSamples)
+  const yValues = sampleLinear(controls.y.min, controls.y.max, controls.ySamples)
+  const zValues = yValues.map((y) =>
+    xValues.map((x) =>
       sanitizeValue(
         evaluateExpressionAst(result.ast, {
           x,
@@ -99,15 +97,15 @@ function buildSurfacePlot(result: ExpressionValidationSuccess): PlotModel {
 
   return {
     plotTestId: 'plot-3d',
-    title: '3D surface preview',
+    title: '3D surface',
     description: MODE_DEFINITIONS['3d'].description,
     interactionHint: 'Drag to rotate and use the wheel or trackpad to zoom.',
     plot: {
       data: [
         {
           type: 'surface',
-          x: axisValues,
-          y: axisValues,
+          x: xValues,
+          y: yValues,
           z: zValues,
           colorscale: [
             [0, '#0a4a6f'],
@@ -128,18 +126,19 @@ function buildSurfacePlot(result: ExpressionValidationSuccess): PlotModel {
           },
           xaxis: {
             title: { text: 'x' },
-            range: [-Math.PI, Math.PI],
+            range: [controls.x.min, controls.x.max],
             backgroundcolor: 'rgba(10, 74, 111, 0.02)',
             gridcolor: '#cfd8dd',
           },
           yaxis: {
             title: { text: 'y' },
-            range: [-Math.PI, Math.PI],
+            range: [controls.y.min, controls.y.max],
             backgroundcolor: 'rgba(10, 74, 111, 0.02)',
             gridcolor: '#cfd8dd',
           },
           zaxis: {
             title: { text: 'z' },
+            range: [controls.z.min, controls.z.max],
             backgroundcolor: 'rgba(10, 74, 111, 0.02)',
             gridcolor: '#cfd8dd',
           },
@@ -157,20 +156,4 @@ function sampleLinear(start: number, end: number, count: number): number[] {
 
 function sanitizeValue(value: number): number | null {
   return Number.isFinite(value) ? value : null
-}
-
-function calculateRange(values: number[]): [number, number] | undefined {
-  if (values.length === 0) {
-    return undefined
-  }
-
-  const minimum = Math.min(...values)
-  const maximum = Math.max(...values)
-
-  if (minimum === maximum) {
-    return [minimum - 1, maximum + 1]
-  }
-
-  const padding = (maximum - minimum) * 0.12
-  return [minimum - padding, maximum + padding]
 }
