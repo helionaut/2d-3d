@@ -38,6 +38,7 @@
 }
 
 .hero-copy,
+.preset-picker,
 .mode-switch,
 .panel-heading,
 .state-card,
@@ -83,6 +84,23 @@
   display: grid;
   gap: 12px;
   align-self: stretch;
+}
+
+.preset-picker {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.preset-select {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--text-strong);
+  font: 0.98rem/1.2 var(--sans);
 }
 
 .mode-button {

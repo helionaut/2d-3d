@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "id": "amplitude-sine",
+  "title": "Amplitude-Controlled Sine",
+  "description": "A sine wave with editable amplitude and frequency parameters.",
+  "mode": "2d",
+  "expression": "a * sin(b * x)",
+  "parameters": [
+    {
+      "id": "a",
+      "label": "Amplitude",
+      "default": 2,
+      "min": 0.5,
+      "max": 4,
+      "step": 0.5
+    },
+    {
+      "id": "b",
+      "label": "Frequency",
+      "default": 3,
+      "min": 0.5,
+      "max": 6,
+      "step": 0.5
+    }
+  ],
+  "viewport": {
+    "x": {
+      "min": -6.2831853072,
+      "max": 6.2831853072
+    },
+    "y": {
+      "min": -2.5,
+      "max": 2.5
+    }
+  },
+  "sampling": {
+    "samples": 361
+  },
+  "tags": [
+    "trigonometric",
+    "parameters"
+  ]
+}
