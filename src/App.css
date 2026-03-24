@@ -1,53 +1,45 @@
-.app-shell {
+.calculator-shell {
   display: grid;
-  gap: 28px;
+  gap: 24px;
   padding: 28px;
 }
 
-.hero-panel,
-.artifact-panel,
-.plot-card,
-.convention-card {
+.hero-card,
+.panel,
+.mode-button {
   border: 1px solid var(--border);
   border-radius: 28px;
   background: var(--panel);
   box-shadow: var(--shadow-soft);
 }
 
-.hero-panel {
+.hero-card {
   display: grid;
-  gap: 20px;
-  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 22px;
+  grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
   padding: 28px;
-  position: relative;
   overflow: hidden;
+  position: relative;
 }
 
-.hero-panel::after {
+.hero-card::after {
   content: '';
   position: absolute;
-  inset: auto -80px -120px auto;
-  width: 280px;
-  height: 280px;
+  inset: auto -70px -130px auto;
+  width: 300px;
+  height: 300px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(236, 183, 55, 0.26), transparent 68%);
+  background: radial-gradient(circle, rgba(236, 183, 55, 0.24), transparent 68%);
 }
 
 .hero-copy,
-.hero-note,
-.plot-copy,
-.artifact-card {
+.mode-switch,
+.panel-heading,
+.state-card,
+.plot-meta,
+.support-card {
   position: relative;
   z-index: 1;
-}
-
-.lede,
-.section-heading p,
-.note-list,
-.convention-card p,
-.artifact-card p,
-.fixture-meta dd {
-  color: var(--text-soft);
 }
 
 .eyebrow {
@@ -59,101 +51,186 @@
   color: var(--accent);
 }
 
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 22px;
+.lede,
+.panel-heading p,
+.field-hint,
+.plot-meta p,
+.support-card p,
+.state-card p {
+  color: var(--text-soft);
 }
 
-.chip-row span,
-.artifact-card code,
-.convention-card code,
-.fixture-meta code {
-  border: 1px solid var(--border-strong);
+.lede code,
+.field-hint code,
+.support-card code,
+.plot-meta code,
+.state-card code {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
   border-radius: 999px;
+  border: 1px solid var(--border-strong);
   background: rgba(255, 255, 255, 0.72);
   color: var(--text-strong);
-  display: inline-flex;
-  padding: 0.35rem 0.8rem;
 }
 
-.hero-note {
+.mode-switch {
+  display: grid;
+  gap: 12px;
   align-self: stretch;
-  padding: 22px;
-  border-radius: 22px;
-  background: rgba(10, 74, 111, 0.05);
 }
 
-.note-list,
-.path-list {
-  margin: 0;
-  padding-left: 1.15rem;
+.mode-button {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
-.convention-grid,
-.artifact-grid,
-.plot-grid {
+.mode-button:hover {
+  transform: translateY(-1px);
+}
+
+.mode-button.is-active {
+  border-color: rgba(10, 74, 111, 0.4);
+  background: linear-gradient(180deg, rgba(10, 74, 111, 0.08), rgba(255, 255, 255, 0.92));
+}
+
+.mode-button-title {
+  font-family: var(--heading);
+  font-size: 1.35rem;
+  color: var(--text-strong);
+}
+
+.mode-button-copy {
+  color: var(--text-soft);
+}
+
+.workspace-grid,
+.support-grid {
   display: grid;
   gap: 18px;
 }
 
-.convention-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.workspace-grid {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.25fr);
 }
 
-.convention-card {
-  padding: 22px;
+.support-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.plots-section,
-.artifact-panel {
+.panel {
   display: grid;
   gap: 18px;
+  padding: 24px;
 }
 
-.section-heading {
+.panel-heading {
   display: grid;
   gap: 8px;
 }
 
-.plot-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.plot-card {
-  display: grid;
-  gap: 16px;
-  padding: 22px;
-}
-
-.plot-copy h3,
-.artifact-card h3,
-.hero-note h2 {
-  margin: 0 0 8px;
-}
-
-.fixture-meta {
-  display: grid;
-  gap: 12px;
-  margin: 16px 0 0;
-}
-
-.fixture-meta div {
-  display: grid;
-  gap: 6px;
-}
-
-.fixture-meta dt {
-  font-size: 0.78rem;
+.field-label,
+.state-label {
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
+.formula-input {
+  min-height: 108px;
+  padding: 16px 18px;
+  resize: vertical;
+  border-radius: 22px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--text-strong);
+  font: 1rem/1.55 var(--mono);
+}
+
+.formula-input:focus {
+  outline: 2px solid rgba(10, 74, 111, 0.18);
+  outline-offset: 3px;
+}
+
+.formula-input.has-error {
+  border-color: rgba(164, 51, 38, 0.38);
+  background: rgba(255, 242, 240, 0.92);
+}
+
+.status-banner {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+.status-banner.is-valid {
+  border-color: rgba(10, 119, 91, 0.18);
+  background: rgba(233, 248, 241, 0.9);
+}
+
+.status-banner.is-error {
+  border-color: rgba(164, 51, 38, 0.18);
+  background: rgba(255, 241, 238, 0.94);
+}
+
+.status-banner strong,
+.status-banner p:first-child {
+  color: var(--text-strong);
+}
+
+.recovery-copy {
+  color: #8f4a3b;
+}
+
+.state-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.state-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 22px;
+  background: rgba(255, 249, 232, 0.78);
+  border: 1px solid rgba(173, 122, 19, 0.16);
+}
+
+.state-card p:last-child,
+.state-card code {
+  color: var(--text-strong);
+}
+
+.plot-panel {
+  align-content: start;
+}
+
+.plot-meta {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.plot-meta div {
+  display: grid;
+  gap: 6px;
+}
+
 .plot-shell {
-  min-height: 360px;
+  min-height: 420px;
   padding: 10px;
   border-radius: 22px;
   background: var(--plot-surface);
@@ -168,53 +245,53 @@
   height: 100%;
 }
 
-.artifact-panel {
-  padding: 24px;
+.support-card {
+  align-content: start;
 }
 
-.artifact-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.function-list {
+  font-family: var(--mono);
+  line-height: 1.7;
 }
 
-.artifact-card {
-  padding: 22px;
-  border-radius: 22px;
-  background: rgba(255, 249, 232, 0.72);
-  border: 1px solid rgba(173, 122, 19, 0.16);
-}
-
-.artifact-card code {
-  margin-top: 12px;
+@media (max-width: 1100px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 960px) {
-  .app-shell {
+  .calculator-shell {
     padding: 18px;
   }
 
-  .hero-panel,
-  .plot-grid,
-  .convention-grid,
-  .artifact-grid {
+  .hero-card,
+  .support-grid,
+  .state-grid,
+  .plot-meta {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 640px) {
-  .app-shell {
+  .calculator-shell {
     padding: 14px;
+    gap: 18px;
   }
 
-  .hero-panel,
-  .plot-card,
-  .artifact-panel,
-  .convention-card {
-    padding: 18px;
+  .hero-card,
+  .panel,
+  .mode-button {
     border-radius: 22px;
   }
 
+  .hero-card,
+  .panel {
+    padding: 18px;
+  }
+
   .plot-shell {
-    min-height: 300px;
+    min-height: 320px;
     padding: 6px;
   }
 }

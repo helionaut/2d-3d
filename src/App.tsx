@@ -1,141 +1,214 @@
-import { graphFixtures, invalidExpressionFixture } from '../fixtures/graphFixtures'
+import { useState } from 'react'
+
 import { PlotCanvas } from './components/PlotCanvas'
+import {
+  MODE_DEFINITIONS,
+  SUPPORTED_CONSTANTS,
+  SUPPORTED_FUNCTION_REFERENCE,
+  validateExpressionInput,
+  type ExpressionValidationResult,
+  type ExpressionValidationSuccess,
+  type GraphMode,
+} from './lib/expression'
+import { buildPlotModel } from './lib/plotting'
 import './App.css'
 
-function App() {
-  const conventions = [
-    {
-      title: 'Local loop',
-      body: 'Run the repo-local bootstrap once, then use the Vite dev server for daily implementation work.',
-      command: 'npm run bootstrap && npm run dev',
-    },
-    {
-      title: 'Aggregate validation',
-      body: 'Future implementation tickets should prove lint, unit checks, production build, and browser smoke through one command.',
-      command: 'npm run check',
-    },
-    {
-      title: 'Future test lanes',
-      body: 'Keep reusable graph inputs in fixtures, fast assertions in unit tests, and browser interaction proof in Playwright.',
-      command: 'fixtures/ + tests/unit/ + tests/browser/',
-    },
-  ]
+interface ModeEditorState {
+  rawInput: string
+  parameterValues: Record<string, number>
+  validation: ExpressionValidationResult
+  lastValid: ExpressionValidationSuccess
+}
 
-  const artifactPaths = [
-    'fixtures/graphFixtures.ts',
-    'tests/unit/',
-    'tests/browser/',
-    'logs/out/',
-    'reports/out/',
-  ]
+function createInitialModeState(mode: GraphMode): ModeEditorState {
+  const initialValidation = validateExpressionInput({
+    mode,
+    rawInput: MODE_DEFINITIONS[mode].exampleInput,
+    parameterValues: {},
+  })
+
+  if (!initialValidation.ok) {
+    throw new Error(`Initial formula for ${mode} mode must be valid.`)
+  }
+
+  return {
+    rawInput: MODE_DEFINITIONS[mode].exampleInput,
+    parameterValues: {},
+    validation: initialValidation,
+    lastValid: initialValidation,
+  }
+}
+
+function createInitialEditorState(): Record<GraphMode, ModeEditorState> {
+  return {
+    '2d': createInitialModeState('2d'),
+    '3d': createInitialModeState('3d'),
+  }
+}
+
+function App() {
+  const [mode, setMode] = useState<GraphMode>('2d')
+  const [editorStateByMode, setEditorStateByMode] = useState(createInitialEditorState)
+
+  const activeModeDefinition = MODE_DEFINITIONS[mode]
+  const activeEditorState = editorStateByMode[mode]
+  const activePlotModel = buildPlotModel(activeEditorState.lastValid)
+
+  const handleFormulaChange = (nextRawInput: string) => {
+    setEditorStateByMode((currentState) => {
+      const activeState = currentState[mode]
+      const nextValidation = validateExpressionInput({
+        mode,
+        rawInput: nextRawInput,
+        parameterValues: activeState.parameterValues,
+      })
+
+      return {
+        ...currentState,
+        [mode]: {
+          ...activeState,
+          rawInput: nextRawInput,
+          validation: nextValidation,
+          lastValid: nextValidation.ok ? nextValidation : activeState.lastValid,
+        },
+      }
+    })
+  }
 
   return (
-    <main className="app-shell">
-      <section className="hero-panel">
+    <main className="calculator-shell">
+      <section className="hero-card">
         <div className="hero-copy">
-          <p className="eyebrow">HEL-84 engineering harness</p>
-          <h1>Static-web graphing baseline with one 2D proof and one 3D proof.</h1>
+          <p className="eyebrow">Browser graph calculator</p>
+          <h1>Type a formula, validate it inline, and keep the graph stable while you edit.</h1>
           <p className="lede">
-            This harness locks the frontend stack, local workflow, and validation
-            paths so future tickets can implement calculator behavior instead of
-            rebuilding setup.
+            {activeModeDefinition.label} mode accepts a raw expression or the optional
+            <code>{` ${activeModeDefinition.dependentVariable} = ...`}</code>
+            prefix.
           </p>
-          <div className="chip-row" aria-label="Chosen stack">
-            <span>React 19</span>
-            <span>Vite</span>
-            <span>TypeScript</span>
-            <span>Plotly</span>
-            <span>Vitest</span>
-            <span>Playwright</span>
+        </div>
+
+        <div className="mode-switch" aria-label="Graph mode">
+          {(Object.entries(MODE_DEFINITIONS) as [GraphMode, (typeof MODE_DEFINITIONS)[GraphMode]][]).map(
+            ([nextMode, definition]) => (
+              <button
+                key={nextMode}
+                type="button"
+                className={`mode-button ${mode === nextMode ? 'is-active' : ''}`}
+                aria-pressed={mode === nextMode}
+                onClick={() => setMode(nextMode)}
+              >
+                <span className="mode-button-title">{definition.buttonLabel}</span>
+                <span className="mode-button-copy">
+                  {definition.dependentVariable} = f({definition.variables.join(', ')})
+                </span>
+              </button>
+            ),
+          )}
+        </div>
+      </section>
+
+      <section className="workspace-grid">
+        <section className="panel editor-panel" aria-labelledby="editor-heading">
+          <div className="panel-heading">
+            <p className="eyebrow">Formula entry</p>
+            <h2 id="editor-heading">Normalize input before it reaches graph state.</h2>
+            <p>
+              Persisted formulas keep only the right-hand side. Invalid edits stay inline and
+              never replace the last valid graph.
+            </p>
           </div>
-        </div>
-        <aside className="hero-note">
-          <h2>Harness contract</h2>
-          <ul className="note-list">
-            <li>Single aggregate validation command mirrored by CI.</li>
-            <li>Deterministic paths for fixtures, logs, and reports.</li>
-            <li>Canonical examples fixed to the PRD acceptance flows.</li>
-          </ul>
-        </aside>
-      </section>
 
-      <section className="convention-grid" aria-label="Harness conventions">
-        {conventions.map((item) => (
-          <article className="convention-card" key={item.title}>
-            <p className="eyebrow">{item.title}</p>
-            <p>{item.body}</p>
-            <code>{item.command}</code>
-          </article>
-        ))}
-      </section>
-
-      <section className="plots-section" aria-labelledby="plots-heading">
-        <div className="section-heading">
-          <p className="eyebrow">Rendering spike</p>
-          <h2 id="plots-heading">Chosen stack proves both canonical plotting modes.</h2>
-          <p>
-            The cards below are the reusable acceptance proofs from the PRD:
-            `y = sin(x)` in 2D and `z = sin(x) * cos(y)` in 3D.
+          <label className="field-label" htmlFor="formula-input">
+            Formula
+          </label>
+          <textarea
+            id="formula-input"
+            className={`formula-input ${activeEditorState.validation.ok ? '' : 'has-error'}`}
+            value={activeEditorState.rawInput}
+            onChange={(event) => handleFormulaChange(event.target.value)}
+            aria-invalid={!activeEditorState.validation.ok}
+            spellCheck={false}
+            rows={3}
+          />
+          <p className="field-hint">
+            Variables: <code>{activeModeDefinition.variables.join(', ')}</code>. Constants:{' '}
+            <code>{SUPPORTED_CONSTANTS.join(', ')}</code>. Functions use parentheses and explicit
+            operators only.
           </p>
-        </div>
 
-        <div className="plot-grid">
-          {graphFixtures.map((fixture) => (
-            <article className="plot-card" key={fixture.id}>
-              <div className="plot-copy">
-                <p className="eyebrow">{fixture.mode} proof</p>
-                <h3>{fixture.title}</h3>
-                <p>{fixture.summary}</p>
-                <dl className="fixture-meta">
-                  <div>
-                    <dt>Expression</dt>
-                    <dd>
-                      <code>{fixture.expression}</code>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Interaction</dt>
-                    <dd>{fixture.interactionNote}</dd>
-                  </div>
-                  <div>
-                    <dt>Sampling</dt>
-                    <dd>{fixture.samplingNote}</dd>
-                  </div>
-                </dl>
-              </div>
-              <PlotCanvas fixture={fixture} />
+          {activeEditorState.validation.ok ? (
+            <p className="status-banner is-valid" role="status">
+              <strong>Valid formula.</strong> The stored expression is ready for the graph surface.
+            </p>
+          ) : (
+            <div className="status-banner is-error">
+              <p role="alert">{activeEditorState.validation.error.message}</p>
+              <p className="recovery-copy">Showing the last valid graph while you edit.</p>
+            </div>
+          )}
+
+          <div className="state-grid">
+            <article className="state-card">
+              <p className="state-label">Stored expression</p>
+              <code data-testid="stored-expression-value">
+                {activeEditorState.lastValid.normalizedExpression}
+              </code>
             </article>
-          ))}
-        </div>
+            <article className="state-card">
+              <p className="state-label">Mode variables</p>
+              <p>{activeModeDefinition.variables.join(', ')}</p>
+            </article>
+            <article className="state-card">
+              <p className="state-label">Parameters in use</p>
+              <p>
+                {activeEditorState.lastValid.referencedParameters.length > 0
+                  ? activeEditorState.lastValid.referencedParameters.join(', ')
+                  : 'None'}
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section className="panel plot-panel" aria-labelledby="plot-heading">
+          <div className="panel-heading">
+            <p className="eyebrow">Live graph</p>
+            <h2 id="plot-heading">{activePlotModel.title}</h2>
+            <p>{activePlotModel.description}</p>
+          </div>
+
+          <div className="plot-meta">
+            <div>
+              <span className="state-label">Current graph</span>
+              <code>{activeEditorState.lastValid.normalizedExpression}</code>
+            </div>
+            <div>
+              <span className="state-label">Interaction</span>
+              <p>{activePlotModel.interactionHint}</p>
+            </div>
+          </div>
+
+          <PlotCanvas plot={activePlotModel.plot} plotTestId={activePlotModel.plotTestId} />
+        </section>
       </section>
 
-      <section className="artifact-panel" aria-labelledby="artifact-heading">
-        <div className="section-heading">
-          <p className="eyebrow">Deterministic paths</p>
-          <h2 id="artifact-heading">Future implementation work reuses fixed locations.</h2>
+      <section className="support-grid" aria-label="Formula guidance">
+        <article className="panel support-card">
+          <p className="eyebrow">Accepted syntax</p>
+          <h2>Small, deterministic grammar.</h2>
           <p>
-            Browser tests, fixtures, logs, and reports already have committed
-            homes. The placeholder invalid example is also fixed now so parser
-            work has a shared starting point.
+            Use <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code>,
+            parentheses, constants, and named functions. Implicit multiplication like{' '}
+            <code>2x</code> or <code>x(y + 1)</code> is rejected so the result model stays
+            predictable.
           </p>
-        </div>
-        <div className="artifact-grid">
-          <article className="artifact-card">
-            <h3>Fixtures and tests</h3>
-            <ul className="path-list">
-              {artifactPaths.map((path) => (
-                <li key={path}>
-                  <code>{path}</code>
-                </li>
-              ))}
-            </ul>
-          </article>
-          <article className="artifact-card">
-            <h3>Invalid-input placeholder</h3>
-            <p>{invalidExpressionFixture.summary}</p>
-            <code>{invalidExpressionFixture.expression}</code>
-          </article>
-        </div>
+        </article>
+
+        <article className="panel support-card">
+          <p className="eyebrow">Function set</p>
+          <h2>Supported by the validator and evaluator.</h2>
+          <p className="function-list">{SUPPORTED_FUNCTION_REFERENCE.join(', ')}</p>
+        </article>
       </section>
     </main>
   )
