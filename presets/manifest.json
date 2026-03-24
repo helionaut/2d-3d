@@ -8,6 +8,12 @@
       "canonical": true
     },
     {
+      "id": "amplitude-sine",
+      "mode": "2d",
+      "path": "presets/2d/amplitude-sine.json",
+      "canonical": false
+    },
+    {
       "id": "canonical-sine-cosine-surface",
       "mode": "3d",
       "path": "presets/3d/canonical-sine-cosine-surface.json",

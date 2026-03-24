@@ -56,7 +56,7 @@ describe('App', () => {
     expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('y = sin(x)')
     expect(screen.getByLabelText('X minimum')).toHaveValue(-6.28)
     expect(screen.getByLabelText('Y maximum')).toHaveValue(1.5)
-    expect(screen.getByLabelText('Samples')).toHaveValue(241)
+    expect(screen.getByLabelText('Samples')).toHaveValue(512)
     expect(screen.queryByLabelText('Z minimum')).not.toBeInTheDocument()
     expect(screen.getByTestId('mock-plot-2d')).toBeInTheDocument()
 
@@ -82,8 +82,8 @@ describe('App', () => {
     expect(screen.getByTestId('rendered-expression-value')).toHaveTextContent('y = sin(x)')
     expect(screen.getByTestId('rendered-x-range')).toHaveTextContent('-6.28 to 6.28')
     expect(screen.getByTestId('rendered-y-range')).toHaveTextContent('-1.50 to 1.50')
-    expect(screen.getByTestId('rendered-samples')).toHaveTextContent('241')
-    expect(screen.getByTestId('plot-2d-series-length')).toHaveTextContent('241')
+    expect(screen.getByTestId('rendered-samples')).toHaveTextContent('512')
+    expect(screen.getByTestId('plot-2d-series-length')).toHaveTextContent('512')
 
     fireEvent.click(screen.getByRole('button', { name: 'Render graph' }))
 
@@ -94,25 +94,52 @@ describe('App', () => {
     expect(screen.getByTestId('plot-2d-series-length')).toHaveTextContent('101')
   })
 
-  it('resets the active mode back to its default formula and controls', () => {
+  it('hydrates a preset selection into formula, parameters, viewport, and sampling', () => {
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /3D surface/i }))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Expression' }), {
-      target: { value: 'z = x * y' },
+    fireEvent.change(screen.getByLabelText('Built-in example'), {
+      target: { value: 'amplitude-sine' },
     })
-    fireEvent.change(screen.getByLabelText('Z minimum'), { target: { value: '-5' } })
-    fireEvent.change(screen.getByLabelText('X samples'), { target: { value: '21' } })
+
+    expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('y = a * sin(b * x)')
+    expect(screen.getByLabelText('Amplitude')).toHaveValue(2)
+    expect(screen.getByLabelText('Frequency')).toHaveValue(3)
+    expect(screen.getByLabelText('Y minimum')).toHaveValue(-2.5)
+    expect(screen.getByLabelText('Samples')).toHaveValue(361)
+
+    fireEvent.change(screen.getByLabelText('Built-in example'), {
+      target: { value: 'canonical-sine-cosine-surface' },
+    })
+
+    expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('z = sin(x) * cos(y)')
+    expect(screen.getByLabelText('Z minimum')).toHaveValue(-1.5)
+    expect(screen.getByLabelText('X samples')).toHaveValue(96)
+    expect(screen.queryByLabelText('Amplitude')).not.toBeInTheDocument()
+  })
+
+  it('resets the active mode back to the selected preset formula and controls', () => {
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText('Built-in example'), {
+      target: { value: 'amplitude-sine' },
+    })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Expression' }), {
+      target: { value: 'y = a * x' },
+    })
+    fireEvent.change(screen.getByLabelText('Amplitude'), { target: { value: '4' } })
+    fireEvent.change(screen.getByLabelText('Y minimum'), { target: { value: '-9' } })
+    fireEvent.change(screen.getByLabelText('Samples'), { target: { value: '101' } })
     fireEvent.click(screen.getByRole('button', { name: 'Render graph' }))
 
     fireEvent.click(screen.getByRole('button', { name: 'Reset mode' }))
 
-    expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('z = sin(x) * cos(y)')
-    expect(screen.getByTestId('rendered-expression-value')).toHaveTextContent('z = sin(x) * cos(y)')
-    expect(screen.getByLabelText('Z minimum')).toHaveValue(-1.5)
-    expect(screen.getByLabelText('X samples')).toHaveValue(96)
-    expect(screen.getByTestId('rendered-z-range')).toHaveTextContent('-1.50 to 1.50')
-    expect(screen.getByTestId('rendered-x-samples')).toHaveTextContent('96')
+    expect(screen.getByRole('textbox', { name: 'Expression' })).toHaveValue('y = a * sin(b * x)')
+    expect(screen.getByLabelText('Amplitude')).toHaveValue(2)
+    expect(screen.getByLabelText('Frequency')).toHaveValue(3)
+    expect(screen.getByLabelText('Y minimum')).toHaveValue(-2.5)
+    expect(screen.getByLabelText('Samples')).toHaveValue(361)
+    expect(screen.getByTestId('rendered-expression-value')).toHaveTextContent('y = a * sin(b * x)')
+    expect(screen.getByTestId('rendered-samples')).toHaveTextContent('361')
   })
 
   it('syncs the 2D controls with viewport relayout and plot reset events', () => {
@@ -153,5 +180,21 @@ describe('App', () => {
 
     expect(screen.getByTestId('rendered-x-samples')).toHaveTextContent('96')
     expect(screen.getByTestId('rendered-y-samples')).toHaveTextContent('96')
+  })
+
+  it('keeps the last rendered graph active when a parameter input becomes invalid', () => {
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText('Built-in example'), {
+      target: { value: 'amplitude-sine' },
+    })
+    fireEvent.change(screen.getByLabelText('Amplitude'), { target: { value: '' } })
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Parameter "a" must be a finite number.')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Render graph' }))
+
+    expect(screen.getByTestId('rendered-expression-value')).toHaveTextContent('y = a * sin(b * x)')
+    expect(screen.getByTestId('rendered-samples')).toHaveTextContent('361')
   })
 })

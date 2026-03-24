@@ -6,9 +6,11 @@ test.describe('graph calculator flows', () => {
 
     await page.goto('/')
 
+    const presetSelect = page.getByLabel('Built-in example')
     const formulaInput = page.getByRole('textbox', { name: 'Expression' })
     const renderButton = page.getByRole('button', { name: 'Render graph' })
 
+    await expect(presetSelect).toHaveValue('canonical-sine')
     await expect(formulaInput).toHaveValue('y = sin(x)')
     await expect(page.getByRole('button', { name: /2D curve/i })).toHaveAttribute('aria-pressed', 'true')
     await expect(page.getByLabel('X minimum')).toBeVisible()
@@ -19,6 +21,11 @@ test.describe('graph calculator flows', () => {
     await expect(page.getByTestId('rendered-expression-value')).toHaveText('y = sin(x)')
     await expect(page.getByTestId('rendered-x-range')).toHaveText('-6.28 to 6.28')
     await expect(page.getByTestId('rendered-y-range')).toHaveText('-1.50 to 1.50')
+    await expect(page.getByTestId('rendered-samples')).toHaveText('512')
+
+    await page.locator('main').screenshot({
+      path: `reports/out/visual/hel-92-${testInfo.project.name}-2d.png`,
+    })
 
     await page.getByLabel('Samples').fill('181')
     await renderButton.click()
@@ -45,10 +52,6 @@ test.describe('graph calculator flows', () => {
       }
     }
 
-    await page.locator('main').screenshot({
-      path: `reports/out/visual/hel-91-${testInfo.project.name}-2d.png`,
-    })
-
     if (testInfo.project.name === 'desktop-chromium') {
       await formulaInput.fill('2x')
       await expect(page.getByRole('alert')).toContainText('implicit multiplication')
@@ -56,14 +59,38 @@ test.describe('graph calculator flows', () => {
       await formulaInput.fill('y = sin(x)')
     }
 
-    await page.getByRole('button', { name: /3D surface/i }).click()
+    await presetSelect.selectOption('amplitude-sine')
+
+    await expect(formulaInput).toHaveValue('y = a * sin(b * x)')
+    const amplitudeInput = page.getByRole('spinbutton', { name: 'Amplitude' })
+    const frequencyInput = page.getByRole('spinbutton', { name: 'Frequency' })
+
+    await expect(amplitudeInput).toHaveValue('2')
+    await expect(frequencyInput).toHaveValue('3')
+    await expect(page.getByLabel('Y minimum')).toHaveValue('-2.5')
+    await expect(page.getByLabel('Samples')).toHaveValue('361')
+
+    await amplitudeInput.fill('')
+    await expect(page.getByRole('alert')).toContainText('Parameter "a" must be a finite number.')
+    await expect(page.getByTestId('rendered-expression-value')).toHaveText('y = a * sin(b * x)')
+    await amplitudeInput.fill('2')
+    await renderButton.click()
+    await expect(page.getByTestId('rendered-expression-value')).toHaveText('y = a * sin(b * x)')
+
+    await presetSelect.selectOption('canonical-sine-cosine-surface')
 
     await expect(formulaInput).toHaveValue('z = sin(x) * cos(y)')
+    await expect(presetSelect).toHaveValue('canonical-sine-cosine-surface')
+    await expect(page.getByRole('button', { name: /3D surface/i })).toHaveAttribute('aria-pressed', 'true')
     await expect(page.getByLabel('Z minimum')).toBeVisible()
     await expect(page.getByLabel('X samples')).toBeVisible()
     await expect(page.getByTestId('plot-3d')).toBeVisible()
     await expect(page.getByTestId('plot-3d').locator('canvas').first()).toBeVisible()
     await expect(page.getByTestId('rendered-expression-value')).toHaveText('z = sin(x) * cos(y)')
+
+    await page.locator('main').screenshot({
+      path: `reports/out/visual/hel-92-${testInfo.project.name}-3d.png`,
+    })
 
     await page.getByLabel('X samples').fill('21')
     await page.getByLabel('Y samples').fill('19')
@@ -82,9 +109,5 @@ test.describe('graph calculator flows', () => {
       await page.mouse.up()
       await page.mouse.wheel(0, -150)
     }
-
-    await page.locator('main').screenshot({
-      path: `reports/out/visual/hel-91-${testInfo.project.name}-3d.png`,
-    })
   })
 })

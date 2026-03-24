@@ -1,19 +1,18 @@
 import { useState, type FormEvent } from 'react'
 
 import { GraphControls } from './components/GraphControls'
+import { ParameterControls } from './components/ParameterControls'
 import { PlotCanvas } from './components/PlotCanvas'
 import {
   MODE_DEFINITIONS,
   SUPPORTED_CONSTANTS,
   SUPPORTED_FUNCTION_REFERENCE,
-  validateExpressionInput,
   type ExpressionValidationResult,
   type ExpressionValidationSuccess,
   type GraphMode,
 } from './lib/expression'
 import {
   applyViewportRelayout2D,
-  createDefaultPlotControls,
   createPlotControlDraft,
   formatRangeSummary,
   formatSampleSummary,
@@ -25,15 +24,29 @@ import {
   type RangeAxis,
   type SampleFieldKey,
 } from './lib/graphControls'
+import {
+  BUILT_IN_PRESETS,
+  getBuiltInPresetById,
+  getDefaultPresetForMode,
+  hydratePresetState,
+  validateRuntimeExpressionState,
+  type PresetParameterDefinition,
+} from './lib/presets'
 import { buildPlotModel } from './lib/plotting'
 import './App.css'
 
 interface ModeEditorState<Mode extends GraphMode> {
+  selectedPresetId: string
+  presetTitle: string
+  presetDescription?: string
+  parameterDefinitions: PresetParameterDefinition[]
+  parameterDraftValues: Record<string, string>
   rawInput: string
   validation: ExpressionValidationResult
   lastRendered: ExpressionValidationSuccess & { mode: Mode }
   draftControls: PlotControlDraft2D | PlotControlDraft3D
   appliedControls: PlotControls2D | PlotControls3D
+  presetControls: PlotControls2D | PlotControls3D
 }
 
 type ModeEditorStateByMode = {
@@ -42,22 +55,7 @@ type ModeEditorStateByMode = {
 }
 
 function createInitialModeState<Mode extends GraphMode>(mode: Mode): ModeEditorState<Mode> {
-  const initialValidation = validateExpressionInput({
-    mode,
-    rawInput: MODE_DEFINITIONS[mode].exampleInput,
-  })
-
-  if (!initialValidation.ok) {
-    throw new Error(`Initial formula for ${mode} mode must be valid.`)
-  }
-
-  return {
-    rawInput: MODE_DEFINITIONS[mode].exampleInput,
-    validation: initialValidation,
-    lastRendered: initialValidation as ExpressionValidationSuccess & { mode: Mode },
-    draftControls: createPlotControlDraft(mode),
-    appliedControls: createDefaultPlotControls(mode),
-  }
+  return hydratePresetState(getDefaultPresetForMode(mode)) as ModeEditorState<Mode>
 }
 
 function createInitialEditorState(): ModeEditorStateByMode {
@@ -73,32 +71,104 @@ function App() {
 
   const activeModeDefinition = MODE_DEFINITIONS[mode]
   const activeEditorState = editorStateByMode[mode]
+  const activeRuntimeValidation = validateRuntimeExpressionState({
+    mode,
+    rawInput: activeEditorState.rawInput,
+    parameterDefinitions: activeEditorState.parameterDefinitions,
+    parameterDraftValues: activeEditorState.parameterDraftValues,
+  })
   const activeControlValidation = validatePlotControlDraft(mode, activeEditorState.draftControls)
   const activePlotModel = buildPlotModel(activeEditorState.lastRendered, activeEditorState.appliedControls)
   const activeControlErrors = activeControlValidation.ok ? {} : activeControlValidation.errors
+  const activeParameterErrors = activeRuntimeValidation.parameterErrors
+  const getAppliedDraftControls = () =>
+    mode === '2d'
+      ? {
+          x: {
+            min: String((activeEditorState.appliedControls as PlotControls2D).x.min),
+            max: String((activeEditorState.appliedControls as PlotControls2D).x.max),
+          },
+          y: {
+            min: String((activeEditorState.appliedControls as PlotControls2D).y.min),
+            max: String((activeEditorState.appliedControls as PlotControls2D).y.max),
+          },
+          samples: String((activeEditorState.appliedControls as PlotControls2D).samples),
+        }
+      : {
+          x: {
+            min: String((activeEditorState.appliedControls as PlotControls3D).x.min),
+            max: String((activeEditorState.appliedControls as PlotControls3D).x.max),
+          },
+          y: {
+            min: String((activeEditorState.appliedControls as PlotControls3D).y.min),
+            max: String((activeEditorState.appliedControls as PlotControls3D).y.max),
+          },
+          z: {
+            min: String((activeEditorState.appliedControls as PlotControls3D).z.min),
+            max: String((activeEditorState.appliedControls as PlotControls3D).z.max),
+          },
+          xSamples: String((activeEditorState.appliedControls as PlotControls3D).xSamples),
+          ySamples: String((activeEditorState.appliedControls as PlotControls3D).ySamples),
+        }
   const isFormulaDirty = activeEditorState.validation.ok
     ? activeEditorState.validation.normalizedExpression !==
       activeEditorState.lastRendered.normalizedExpression
     : activeEditorState.rawInput !== activeEditorState.lastRendered.rawInput
+  const areParametersDirty =
+    JSON.stringify(activeEditorState.parameterDraftValues) !==
+    JSON.stringify(
+      Object.fromEntries(
+        activeEditorState.parameterDefinitions.map((definition) => [
+          definition.id,
+          String(activeEditorState.lastRendered.parameterValues[definition.id] ?? definition.default),
+        ]),
+      ),
+    )
   const isControlDirty =
-    JSON.stringify(activeEditorState.draftControls) !==
-    JSON.stringify(createPlotControlDraft(mode, activeEditorState.appliedControls))
-  const hasPendingChanges = isFormulaDirty || isControlDirty
-  const canRender = activeEditorState.validation.ok && activeControlValidation.ok
+    JSON.stringify(activeEditorState.draftControls) !== JSON.stringify(getAppliedDraftControls())
+  const hasPendingChanges = isFormulaDirty || areParametersDirty || isControlDirty
+  const canRender = activeRuntimeValidation.validation.ok && activeControlValidation.ok
 
   const handleFormulaChange = (nextRawInput: string) => {
     setEditorStateByMode((currentState) => {
       const activeState = currentState[mode]
-      const nextValidation = validateExpressionInput({
+      const nextValidation = validateRuntimeExpressionState({
         mode,
         rawInput: nextRawInput,
-      })
+        parameterDefinitions: activeState.parameterDefinitions,
+        parameterDraftValues: activeState.parameterDraftValues,
+      }).validation
 
       return {
         ...currentState,
         [mode]: {
           ...activeState,
           rawInput: nextRawInput,
+          validation: nextValidation,
+        },
+      }
+    })
+  }
+
+  const handleParameterChange = (parameterId: string, value: string) => {
+    setEditorStateByMode((currentState) => {
+      const activeState = currentState[mode]
+      const parameterDraftValues = {
+        ...activeState.parameterDraftValues,
+        [parameterId]: value,
+      }
+      const nextValidation = validateRuntimeExpressionState({
+        mode,
+        rawInput: activeState.rawInput,
+        parameterDefinitions: activeState.parameterDefinitions,
+        parameterDraftValues,
+      }).validation
+
+      return {
+        ...currentState,
+        [mode]: {
+          ...activeState,
+          parameterDraftValues,
           validation: nextValidation,
         },
       }
@@ -153,7 +223,7 @@ function App() {
   const handleRender = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    if (!activeEditorState.validation.ok || !activeControlValidation.ok) {
+    if (!activeRuntimeValidation.validation.ok || !activeControlValidation.ok) {
       return
     }
 
@@ -161,7 +231,7 @@ function App() {
       ...currentState,
       [mode]: {
         ...currentState[mode],
-        lastRendered: activeEditorState.validation,
+        lastRendered: activeRuntimeValidation.validation,
         appliedControls: activeControlValidation.value,
       },
     }))
@@ -170,8 +240,18 @@ function App() {
   const handleReset = () => {
     setEditorStateByMode((currentState) => ({
       ...currentState,
-      [mode]: createInitialModeState(mode),
+      [mode]: hydratePresetState(getBuiltInPresetById(currentState[mode].selectedPresetId) as never),
     }))
+  }
+
+  const handlePresetChange = (presetId: string) => {
+    const preset = getBuiltInPresetById(presetId)
+
+    setEditorStateByMode((currentState) => ({
+      ...currentState,
+      [preset.mode]: hydratePresetState(preset as never),
+    }))
+    setMode(preset.mode)
   }
 
   const handleViewportChange = (event: Record<string, unknown>) => {
@@ -183,7 +263,7 @@ function App() {
       const activeState = currentState['2d']
       const nextControls = applyViewportRelayout2D({
         currentControls: activeState.appliedControls as PlotControls2D,
-        resetControls: createDefaultPlotControls('2d'),
+        resetControls: activeState.presetControls as PlotControls2D,
         relayoutData: event,
       })
 
@@ -206,12 +286,35 @@ function App() {
     <main className="calculator-shell">
       <section className="hero-card" aria-labelledby="app-title">
         <div className="hero-copy">
-          <p className="eyebrow">Online function grapher</p>
-          <h1 id="app-title">Plot a 2D curve or 3D surface from one expression.</h1>
+          <p className="eyebrow">Built-in examples</p>
+          <h1 id="app-title">Start from a checked-in 2D curve or 3D surface preset.</h1>
           <p className="lede">
-            Switch modes, set the visible ranges, and render the graph with one responsive control
-            surface for both views.
+            Load a preset, adjust the formula or parameters, then render the graph with one
+            responsive control surface for both views.
           </p>
+        </div>
+
+        <div className="preset-picker">
+          <label className="field-label" htmlFor="preset-select">
+            Built-in example
+          </label>
+          <select
+            id="preset-select"
+            className="preset-select"
+            value={activeEditorState.selectedPresetId}
+            onChange={(event) => handlePresetChange(event.target.value)}
+          >
+            {(['2d', '3d'] as GraphMode[]).map((presetMode) => (
+              <optgroup key={presetMode} label={MODE_DEFINITIONS[presetMode].label}>
+                {BUILT_IN_PRESETS.filter((preset) => preset.mode === presetMode).map((preset) => (
+                  <option key={preset.id} value={preset.id}>
+                    {preset.title}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <p className="field-hint">{activeEditorState.presetDescription ?? 'Loaded from presets/manifest.json.'}</p>
         </div>
 
         <div className="mode-switch" aria-label="Graph mode">
@@ -238,7 +341,7 @@ function App() {
         <form className="panel editor-panel" aria-labelledby="editor-heading" onSubmit={handleRender}>
           <div className="panel-heading">
             <p className="eyebrow">Calculator controls</p>
-            <h2 id="editor-heading">Set the formula and viewport for {activeModeDefinition.label} mode.</h2>
+            <h2 id="editor-heading">Adjust {activeEditorState.presetTitle} for {activeModeDefinition.label} mode.</h2>
             <p>
               {activeModeDefinition.label} mode accepts a raw expression or an optional
               <code>{` ${activeModeDefinition.dependentVariable} = ...`}</code> prefix.
@@ -250,10 +353,10 @@ function App() {
           </label>
           <textarea
             id="formula-input"
-            className={`formula-input ${activeEditorState.validation.ok ? '' : 'has-error'}`}
+            className={`formula-input ${activeRuntimeValidation.validation.ok ? '' : 'has-error'}`}
             value={activeEditorState.rawInput}
             onChange={(event) => handleFormulaChange(event.target.value)}
-            aria-invalid={!activeEditorState.validation.ok}
+            aria-invalid={!activeRuntimeValidation.validation.ok}
             spellCheck={false}
             rows={2}
           />
@@ -263,7 +366,7 @@ function App() {
             operators only.
           </p>
 
-          {activeEditorState.validation.ok ? (
+          {activeRuntimeValidation.validation.ok ? (
             <p
               className={`status-banner ${hasPendingChanges ? 'is-pending' : 'is-valid'}`}
               role="status"
@@ -275,12 +378,12 @@ function App() {
             </p>
           ) : (
             <div className="status-banner is-error">
-              <p role="alert">{activeEditorState.validation.error.message}</p>
+              <p role="alert">{activeRuntimeValidation.validation.error.message}</p>
               <p className="recovery-copy">The viewport keeps the last rendered graph until you recover.</p>
             </div>
           )}
 
-          {activeEditorState.validation.ok && !activeControlValidation.ok ? (
+          {activeRuntimeValidation.validation.ok && !activeControlValidation.ok ? (
             <div className="status-banner is-error">
               <p role="alert">Review the highlighted graph controls before rendering.</p>
               <p className="recovery-copy">The current viewport stays active until the control values are valid.</p>
@@ -295,6 +398,13 @@ function App() {
               Reset mode
             </button>
           </div>
+
+          <ParameterControls
+            definitions={activeEditorState.parameterDefinitions}
+            draftValues={activeEditorState.parameterDraftValues}
+            errors={activeParameterErrors}
+            onChange={handleParameterChange}
+          />
 
           <GraphControls
             mode={mode}
