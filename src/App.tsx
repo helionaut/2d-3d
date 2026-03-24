@@ -12,6 +12,7 @@ import {
   type GraphMode,
 } from './lib/expression'
 import {
+  applyViewportRelayout2D,
   createDefaultPlotControls,
   createPlotControlDraft,
   formatRangeSummary,
@@ -171,6 +172,34 @@ function App() {
       ...currentState,
       [mode]: createInitialModeState(mode),
     }))
+  }
+
+  const handleViewportChange = (event: Record<string, unknown>) => {
+    if (mode !== '2d') {
+      return
+    }
+
+    setEditorStateByMode((currentState) => {
+      const activeState = currentState['2d']
+      const nextControls = applyViewportRelayout2D({
+        currentControls: activeState.appliedControls as PlotControls2D,
+        resetControls: createDefaultPlotControls('2d'),
+        relayoutData: event,
+      })
+
+      if (!nextControls) {
+        return currentState
+      }
+
+      return {
+        ...currentState,
+        '2d': {
+          ...activeState,
+          appliedControls: nextControls,
+          draftControls: createPlotControlDraft('2d', nextControls),
+        },
+      }
+    })
   }
 
   return (
@@ -345,7 +374,17 @@ function App() {
             ) : null}
           </div>
 
-          <PlotCanvas plot={activePlotModel.plot} plotTestId={activePlotModel.plotTestId} />
+          {activePlotModel.notice ? (
+            <p className="status-banner is-error" role="status" data-testid="plot-notice">
+              {activePlotModel.notice}
+            </p>
+          ) : null}
+
+          <PlotCanvas
+            plot={activePlotModel.plot}
+            plotTestId={activePlotModel.plotTestId}
+            onViewportChange={handleViewportChange}
+          />
         </section>
       </section>
     </main>
